@@ -1,4 +1,16 @@
-The Qlik Sense svgReader Extension is meant to provide the ability to visualize data on an image or map using color and shading, similar to a choropleth map.
+The Qlik Sense svgReader Extension is meant to provide the ability to visualize data on an image or map using color and shading, similar to a choropleth map.  The extension itself is pre-packaged with 34+ maps of various countries and their different regions, as well as a world map and maps of Europe and Africa. 
+
+Also, there is the ability to load a custom SVG (such as a floorplan) and visualize data across its regions.
+
+
+![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/screenCap.gif)
+
+
+
+*********************************
+How It Works
+*********************************
+
 
 
 An SVG image is basically an XML document which contains data telling the internet browser how to draw an image. The different shapes that the SVG draws can be separated out in the XML and thus manipulated and colored however necessary. This extension takes advantage of this technology by allowing the QVW to target and color the different shapes by identifying the ID of the SVG element. 
@@ -15,9 +27,6 @@ For example, a map of US states will have a shape for the state of Pennsylvania.
 
 [http://www.inkscape.org/en/](http://www.inkscape.org/en/)
 
-
-
-The extension itself is pre-packaged with 34+ maps of various countries and their different regions, as well as a world map and maps of Europe and Africa. 
 
 
 Once a map is chosen and loaded in the extension, the data in the QVF will need to somehow link to the region ID on the SVG. Typically the regions are identified by ISO code. The reason for this is because it is a globally standard code for identifying regions, and it eliminates the possibility for confusion over the naming, spelling, etc. of the different regions. Loading these ISO codes should be fairly easy, and the data can be scraped from sites like Wikipedia without much difficulty.
@@ -122,4 +131,6 @@ This extension was in high demand so there are several things which could have b
 
 -  Make a more robust color picker
 
+
+- Have the extension repaint the SVG rather than emptying the extension and redrawing the whole thing
 
