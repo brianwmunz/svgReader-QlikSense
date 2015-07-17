@@ -1,0 +1,35 @@
+.qv-object-svgReader div.qv-object-content-container {
+	overflow: auto;
+}
+.qv-object-svgReader td, th {
+	border-top: 0px solid #fff;
+	border-bottom: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+	cursor: default;
+	font-size: 12px;
+}
+.qv-object-svgReader td.numeric {
+	text-align: right;
+}
+.qv-object-svgReader button {
+	width: 100%;
+}
+.tooltip {
+  position: absolute;
+  text-align: center;
+  max-width:300px;
+  padding: 8px;
+  font: 12px sans-serif;
+  background: #fff;
+  border: solid 1px #aaa;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index:10000000;
+  display:none;
+  top:0px;
+  left:0px;
+}

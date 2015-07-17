@@ -1,0 +1,78 @@
+function unitStrip(e) {
+    if (e.indexOf("mm") > -1) {
+        e = e.substr(0, e.indexOf("mm"));
+        e = e * 3.779527559
+    } else if (e.indexOf("pt") > -1) {
+        e = e.replace(/([0-9]+)pt/g, function(e, t) {
+            return Math.round(parseInt(t, 10) * 96 / 72)
+        })
+    } else if (e.indexOf("px") > -1) {
+        e = e.substr(0, e.indexOf("px"))
+    }
+    return e
+}
+var fillSelected = function(t, d, f) {
+  console.info("end thing");
+  console.info(f);
+  if(f != "c"){
+     $(t).attr("class", "selectable");
+     $(t).attr("data-value", d.val.qIndex);
+  }
+   
+    $(t).attr("fill", d.color);
+  $(t).attr("style", "");
+    $(t).css("opacity", "");
+  if(t.parentNode.tagName == "g"){
+
+console.info("d");    console.info(d);
+  }
+}
+
+
+var loopMe = function(chosen,noParent,data){
+  
+    
+}
+var addSelect = function(t){
+  console.info(t.parentNode.nodeName);
+  if(t.parentNode.hasAttribute("data-value")){
+    console.info(t.parentNode);
+  }
+  if ($(t).hasClass("selected")) {
+                                  console.info("is selected");
+                                    $(t).attr("class", "");
+                                } else {
+                                    $(t).attr("class", "selected");
+                                }
+}
+var fillErUp = function(data){
+  
+}
+var colorIt = function(me, d, arrJ,par) {
+  //console.info(me.id);
+  var lid = me.id.toLowerCase()
+    if (((lid in arrJ) || (par)) && (me.tagName == "g")) {
+        //console.info(me.id);
+       // console.info(me.children);
+       // console.info(me.childNodes);
+        $.each(me.children, function() {
+         // console.info(this);
+          if(this.tagName == "g"){
+            console.info("fire it off");
+            colorIt(this,d,arrJ,true)
+          }else{
+            fillSelected(this, d, "c");
+          } 
+        });
+      $(me).attr("class", "selectable");
+    $(me).attr("data-value", d.val.qIndex);
+  $(me).attr("style", "");
+    $(me).css("opacity", "");
+    } else if ((lid in arrJ) || (par)) {
+      console.info(me.id)
+        fillSelected(me, d,"o");
+    } else if (($(me).css("fill") != "none") && !(me.parentNode.id in arrJ) && (par != true)){
+        $(me).css("fill", d.color);
+        $(me).attr("fill", d.color);
+    }
+}
