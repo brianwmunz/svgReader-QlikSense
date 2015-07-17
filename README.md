@@ -17,7 +17,7 @@ An SVG image is basically an XML document which contains data telling the intern
 
 
 
-![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/us-states.png)
+![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/selections.gif)
 
 
 
