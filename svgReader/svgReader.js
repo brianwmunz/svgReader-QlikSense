@@ -217,8 +217,8 @@ define(["jquery", "text!./style.css", "./d3", "./chroma", "core.utils/theme", ".
                             "width": $element.width() - 10 + "px"
                         });
                         con.append(xml.documentElement); //append the svg
-                        var svgW = d3.select('svg').attr("width");
-                        var svgH = d3.select('svg').attr("height");
+                        var svgW = d3.select('#' + extID + ' svg').attr("width");
+                        var svgH = d3.select('#' + extID + ' svg').attr("height");
                         $("body").append("<div class=\"tooltip\"></div>"); //add the tooltip to the body
                         var $svg = d3.select('#' + extID + ' svg'); //select the svg 
                         //This is hacky, serialize it into the file instead.
