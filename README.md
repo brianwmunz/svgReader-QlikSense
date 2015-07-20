@@ -40,7 +40,7 @@ You can also create custom SVGs of just about anything, even a snail:
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/snail.png)
 
 
-Or floorplan of an egyptian bural tomb:
+Or floorplan of an egyptian burial tomb:
 
 
 
