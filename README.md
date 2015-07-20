@@ -40,6 +40,13 @@ You can also create custom SVGs of just about anything, even a snail:
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/snail.png)
 
 
+Or floorplan of an egyptian bural tomb:
+
+
+
+![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/mastaba.png)
+
+
 
 If you create your own custom SVG maps, please contribute them to [Qlik Branch](http://branch.qlik.com)
 
@@ -133,4 +140,8 @@ This extension was in high demand so there are several things which could have b
 
 
 - Have the extension repaint the SVG rather than emptying the extension and redrawing the whole thing
+
+- Add an option to generate a legend
+
+- Do the color expression without needing another expression to be added first
 
