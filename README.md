@@ -1,6 +1,6 @@
 The Qlik Sense svgReader Extension is meant to provide the ability to visualize data on an image or map using color and shading, similar to a choropleth map.  The extension itself is pre-packaged with 34+ maps of various countries and their different regions, as well as a world map and maps of Europe and Africa. 
 
-Also, there is the ability to load a custom SVG (such as a floorplan) and visualize data across its regions.
+Also, there is the ability to load a custom SVG (such as a floorplan) and visualize data across its regions. 
 
 
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/screenCap.gif)
@@ -45,6 +45,9 @@ Or floorplan of an egyptian burial tomb:
 
 
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/mastaba.png)
+
+
+You can now also set the custom SVG path using a Qlik Sense variable, which could allow for drilldowns, etc.
 
 
 
@@ -109,11 +112,19 @@ Now an explanation of the properties:
 
 
 
-![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/propsCustom.png)
+![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/customPath.png)
 
 
 
 **Custom SVG Name** tells the extension where to find the custom SVG you want to load.  
+
+
+
+![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/customPath.png)
+
+
+
+**Treat Custom SVG as Variable** tells the extension to look for a Qlik Sense variable specified in the Custom SVG text box. 
 
 
 *********************************

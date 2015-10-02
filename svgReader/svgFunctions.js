@@ -16,30 +16,46 @@ var fillSelected = function (t, d, f) { //t = this, d = data object, f determine
         $(t).attr("class", "selectable");
         $(t).attr("data-value", d.val.qIndex);
     }
-
     $(t).attr("fill", d.color);
     $(t).attr("style", "");
     $(t).css("opacity", "");
 }
-
+function setSVG(qlik, self, layout) {
+    return {
+        then: function (svgVal) {
+            var loadThis = layout.svg; // custom SVG, if it exists
+            if (layout.svg == "custom") {
+                if (layout.customVar) { //if this customSVG is actually a variable name, get that variable
+                    qlik.currApp(self).variable.getContent(layout.loadSVG, function (reply) {
+                        svgVal(reply.qContent.qString); //send back the contents of the variable
+                    }).
+                    catch (function (err) { //that's not a valid variable name, homie
+                        svgVal("NO VARIABLE");
+                    });
+                } else { //they picked an SVG from the list
+                    loadThis = layout.loadSVG; 
+                    svgVal(loadThis);
+                }
+			}else{
+			  svgVal(layout.svg);
+			}
+        }
+    }
+}
 var colorIt = function (me, d, arrJ, par) {
-
     var lid = me.id.toLowerCase();
     if (((lid in arrJ) || (par)) && (me.tagName == "g")) { //if this element hooks to the data (ot its parent does) and it's a g (group)type svg element 
-
         $.each(me.children, function () { //for each of the g's children, either color it or loop again (if the child is a g)
-
             if (this.tagName == "g") {
                 colorIt(this, d, arrJ, true)
             } else {
                 fillSelected(this, d, "c");
             }
         });
-      if(lid in arrJ){ //if it's a g element and the id matches to the data add the selectable class and data-value
-        $(me).attr("class", "selectable");
-        $(me).attr("data-value", d.val.qIndex);
-        
-      }
+        if (lid in arrJ) { //if it's a g element and the id matches to the data add the selectable class and data-value
+            $(me).attr("class", "selectable");
+            $(me).attr("data-value", d.val.qIndex);
+        }
         $(me).attr("style", "");
         $(me).css("opacity", "");
     } else if ((lid in arrJ) || (par)) { //not a g, it's its own thing...
