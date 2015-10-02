@@ -120,7 +120,7 @@ Now an explanation of the properties:
 
 
 
-![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/customPath.png)
+![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/propsCustom.png)
 
 
 
