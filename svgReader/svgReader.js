@@ -53,6 +53,7 @@ define(["qlik","jquery", "text!./style.css", "./d3", "./chroma", "core.utils/the
                                     ref: "loadSVG",
                                     label: "Custom SVG Name",
                                     type: "string",
+								  expression:"optional",
                                     defaultValue: "none",
                                     show: function (data) {
                                         if (data.svg == "custom") { //if custom svg is selected, then display this box
