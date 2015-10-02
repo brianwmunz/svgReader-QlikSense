@@ -116,7 +116,7 @@ Now an explanation of the properties:
 
 
 
-**Custom SVG Name** tells the extension where to find the custom SVG you want to load.  
+**Custom SVG Name** tells the extension where to find the custom SVG you want to load.  This can also be set to an expression as long as it returns a valid SVG path.
 
 
 
