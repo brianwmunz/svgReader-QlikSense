@@ -5,7 +5,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 	'use strict';
 
 	//get baseUrl of extension assets so css and svg can be loaded correctly in both client and mashup
-	var baseUrl = typeof configs !== "undefined" ? (config.isSecure ? "https://" : "http://" ) + config.host + (config.port ? ":" + config.port : "" ) + config.prefix : "";
+	var baseUrl = typeof config !== "undefined" ? (config.isSecure ? "https://" : "http://" ) + config.host + (config.port ? ":" + config.port : "" ) + config.prefix : "";
 
 	//load css here so that mashups without require.js text extension loaded still work
 	$.get(baseUrl + "/Extensions/svgReader/style.css", function(cssContent) {
