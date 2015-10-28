@@ -152,7 +152,19 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 										}
 									},
 									defaultValue: 10
-								}
+								},
+								HotColorCustom: {
+									type: "string",
+									label: 'Custom Hex Color for Hot',
+									ref: 'hotColorCustom',
+									defaultValue: ''
+							    },
+								ColdColorCustom: {
+									type: "string",
+									label: 'Custom Hex Color for Cold',
+									ref: 'coldColorCustom',
+									defaultValue: ''
+							    }
 							}
 						},
 						// Extra Tooltip Settings
@@ -209,8 +221,8 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 			senseUtils.pageExtensionData(self, $element, layout, function ($element, layout, fullMatrix, me) { //function that pages the full data set and returns a big hypercube with all of the data
 				//load the properties into variables
 				var disColor = Theme.palette[layout.disColor];
-				var hotColor = Theme.palette[layout.hotColor];
-				var coldColor = Theme.palette[layout.coldColor];
+				var hotColor = (typeof layout.hotColorCustom !== 'undefined' && layout.hotColorCustom !=='') ? layout.hotColorCustom : Theme.palette[layout.hotColor];
+				var coldColor = (typeof layout.coldColorCustom !== 'undefined' && layout.coldColorCustom !=='') ? layout.coldColorCustom : Theme.palette[layout.coldColor];
 				var customSVG = layout.loadSVG;
 				var showText = layout.showText;
 				var tooltip = {
