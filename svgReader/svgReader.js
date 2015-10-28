@@ -1,9 +1,17 @@
 /*globals define*/
 var self;
-define(["qlik","jquery", "text!./style.css", "./d3", "./chroma", "core.utils/theme", "./svgOptions", "./svgFunctions", "./senseUtils"], function (qlik, $, cssContent, d3, chroma,  Theme) {
+define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions", "./svgFunctions", "./senseUtils"], function (qlik, $, d3, chroma, Theme) {
     //Theme is an unsupported hook into the color picker color themes
     'use strict';
-    $("<style>").html(cssContent).appendTo("head");
+
+    //get baseUrl of extension assets so css and svg can be loaded correctly in both client and mashup
+    var baseUrl = typeof configs !== "undefined" ? (config.isSecure ? "https://" : "http://" ) + config.host + (config.port ? ":" + config.port : "" ) + config.prefix : "";
+
+    //load css here so that mashups without require.js text extension loaded still work
+    $.get(baseUrl + "/Extensions/svgReader/style.css", function(cssContent) {
+       $( "<style>" ).html( cssContent ).appendTo( "head" );
+    });
+
     return {
         initialProperties: {
             version: 1.0,
@@ -210,7 +218,7 @@ define(["qlik","jquery", "text!./style.css", "./d3", "./chroma", "core.utils/the
                     if (loadThis == "NO VARIABLE") {
                         $element.html("<strong>No Variable Found With That Name</strong>");
                     } else {
-                        d3.xml("/Extensions/svgReader/" + loadThis, "image/svg+xml", function (xml) { //load the SVG
+                        d3.xml(baseUrl + "/Extensions/svgReader/" + loadThis, "image/svg+xml", function (xml) { //load the SVG
                             if (xml) { //if it loaded properly...
                                 $element.css("position", "relative");
                                 $element.append("<div id='" + layout.qInfo.qId + "'></div>"); //create the container div
