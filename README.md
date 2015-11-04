@@ -54,6 +54,9 @@ You can now also set the custom SVG path using a Qlik Sense variable, which coul
 If you create your own custom SVG maps, please contribute them to [Qlik Branch](http://branch.qlik.com)
 
 
+You may custom your tooltip/popup with many options.
+
+
 
 *********************************
 Installation & Use
@@ -92,10 +95,6 @@ Now an explanation of the properties:
 
 
 
-**Display Pop-up** controls whether or not to show a pop-up on mouse over.  The pop-up will simply contain the dimension field and value.
-
-
-
 **Show SVG Text** is an option whether to show text on the custom SVG or not. 
 
 
@@ -125,6 +124,40 @@ Now an explanation of the properties:
 
 
 **Treat Custom SVG as Variable** tells the extension to look for a Qlik Sense variable specified in the Custom SVG text box. 
+
+
+**Show Pop-up** controls whether or not to show a pop-up on mouse over.  The pop-up will simply contain the dimension field and value.
+
+**Custom Pop-up** show/hide more options to custom your pop-up. If you don't check the box, the simple pop-up is visible.
+
+[in the custom pop-up you can use some keywords :
+	##dimension_label## 	if you want to write the label of the dimension
+	##dimension_value## 	if you want to write the value of the dimension
+	##measure_label_1## 	if you want to write the label of the first measure
+	##measure_value_1##		if you want to write the value of the first measure
+	##measure_label_1## 	if you want to write the label of the second measure
+	##measure_value_2## 	if you want to write the value of the second measure
+]
+
+**Show Title** show/hide title in your custom pop-up.
+
+**Title** you can define a custom title. 
+
+**Title Color** you can change the color of the title. For the moment only rgb, so 3 numbers with comma separator. Between 0,0,0 (black) and 255,255,255 (white)
+
+**Show Measure** show/hide a measures list in your custom pop-up.
+
+**Show Measure Label** show/hide the measures labels in your custom pop-up.
+
+**Measure Color** you can change the color of the measures list. For the moment only rgb, so 3 numbers with comma separator. Between 0,0,0 (black) and 255,255,255 (white).
+
+**Show Additional Content** show/hide an additional content. Support html.
+
+**Background Color** you can change the color of the pop-up background. For the moment only rgb, so 3 numbers with comma separator. Between 0,0,0 (black) and 255,255,255 (white).
+
+**Background Opacity** you can change the opacity of the pop-up background.
+
+**Show Border** show/hide the pop-up border.
 
 
 *********************************
