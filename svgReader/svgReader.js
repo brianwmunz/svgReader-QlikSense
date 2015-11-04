@@ -402,7 +402,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 								});
 								
 								
-								// ------------------- ZOOM & DRAG ------------------- 
+						// ------------------- ZOOM & DRAG ------------------- 
 						// http://bl.ocks.org/mbostock/6123708#index.html
 						
 						
@@ -410,13 +410,22 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 						
 						var zoom = d3.behavior.zoom()
 							.scaleExtent([1, 10])
-							.on("zoom", zoomed);
+							.on("zoom", function(d){
+								container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+							});
 						
 						var drag = d3.behavior.drag()
 							.origin(function(d) { return d; })
-							.on("dragstart", dragstarted)
-							.on("drag", dragged)
-							.on("dragend", dragended);
+							.on("dragstart", function (d) {
+								d3.event.sourceEvent.stopPropagation();
+								d3.select(this).classed("dragging", true);
+							})
+							.on("drag", function (d) {
+								d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+							})
+							.on("dragend", function (d) {
+								d3.select(this).classed("dragging", false);
+							});
 						
 						// global svg
 						//var svg = d3.select("body").append("svg")
@@ -445,24 +454,6 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 						$(".svg_map").appendTo($("#g_container"));
 							
 						// ------ CONTENT ------
-						
-						function zoomed() {
-							//console.log("zoomed");
-							container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-						}
-
-						function dragstarted(d) {
-							d3.event.sourceEvent.stopPropagation();
-							d3.select(this).classed("dragging", true);
-						}
-
-						function dragged(d) {
-							d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
-						}
-
-						function dragended(d) {
-							d3.select(this).classed("dragging", false);
-						}
 						
 						// ------------------- ZOOM & DRAG ------------------- 
 								
