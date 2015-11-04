@@ -65,3 +65,57 @@ var colorIt = function (me, d, arrJ, par) {
         $(me).attr("fill", d.color);
     }
 }
+
+// ------ GLOBAL FUNCTIONS ------
+
+// Check Color
+function IsOKColor(str){
+	
+	if(str==undefined) return false;
+	
+	var isOK = false;
+	var res = str.split(',');
+	
+	if(res.length==3){
+		
+		var nan1 = Number.isNaN(parseInt(res[0]));
+		var nan2 = Number.isNaN(parseInt(res[0]));
+		var nan3 = Number.isNaN(parseInt(res[0]));
+		
+		if( !nan1 && !nan2 && !nan3 ) {
+			isOK = true;
+		}
+	}
+	return isOK;
+}
+
+// Replace All
+function ReplaceAll(str, search, replacement){
+	return str.split(search).join(replacement);
+}
+
+// Replace All Keywords
+function ReplaceCustomKeywords(str, d){
+	var res;
+	res = ReplaceAll(str, "#dimension_value#", d.printName);
+	res = ReplaceAll(res, "#dimension_label#", layout.qHyperCube.qDimensionInfo[0].qFallbackTitle);
+	
+	var strval;
+	var strlab;
+	
+	for(var i=0; i<d.data.length; i++){
+		strval = "#measure_value_"+(i+1)+"#";
+		strlab = "#measure_label_"+(i+1)+"#";
+		
+		//console.log(strval);
+		//console.log(strlab);
+		
+		res = ReplaceAll(res, strval, d.data[i].numText);
+		res = ReplaceAll(res, strlab, layout.qHyperCube.qMeasureInfo[i].qFallbackTitle);
+	}
+
+	return res;
+}
+
+
+// ------ GLOBAL FUNCTIONS ------
