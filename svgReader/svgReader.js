@@ -605,7 +605,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 													if(layout.popup.displaytitle && layout.popup.title){
 													
 														// Keywords
-														res = ReplaceCustomKeywords(layout.popup.title, d);
+														res = ReplaceCustomKeywords(layout.popup.title, d, layout);
 														
 														// change tooltip title color
 														var str_title_color = layout.popup.titlecolor;
@@ -646,7 +646,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 													if(layout.popup.displayaddcontent && layout.popup.addcontent){
 														
 														// Keywords
-														res = ReplaceCustomKeywords(layout.popup.addcontent, d);
+														res = ReplaceCustomKeywords(layout.popup.addcontent, d, layout);
 														
 														content+="<p>"+res+"</p>";
 													}
@@ -738,7 +738,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 														if(layout.popup.displaytitle && layout.popup.title){
 															
 															// Keywords
-															res = ReplaceCustomKeywords(layout.popup.title, d);
+															res = ReplaceCustomKeywords(layout.popup.title, d, layout);
 												
 															var str_title_color = layout.popup.titlecolor;
 															var isOK = IsOKColor(str_title_color);
@@ -779,7 +779,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 														if(layout.popup.displayaddcontent && layout.popup.addcontent){
 															
 															// Keywords
-															res = ReplaceCustomKeywords(layout.popup.addcontent, d);
+															res = ReplaceCustomKeywords(layout.popup.addcontent, d, layout);
 															
 															content+="<p>"+res+"</p>";
 														}

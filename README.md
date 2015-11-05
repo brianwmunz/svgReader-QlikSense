@@ -131,12 +131,12 @@ Now an explanation of the properties:
 **Custom Pop-up** show/hide more options to custom your pop-up. If you don't check the box, the simple pop-up is visible.
 
 [in the custom pop-up you can use some keywords :
-	##dimension_label## 	if you want to write the label of the dimension
-	##dimension_value## 	if you want to write the value of the dimension
-	##measure_label_1## 	if you want to write the label of the first measure
-	##measure_value_1##		if you want to write the value of the first measure
-	##measure_label_1## 	if you want to write the label of the second measure
-	##measure_value_2## 	if you want to write the value of the second measure
+	#dimension_label# 	if you want to write the label of the dimension
+	#dimension_value# 	if you want to write the value of the dimension
+	#measure_label_1# 	if you want to write the label of the first measure
+	#measure_value_1#	if you want to write the value of the first measure
+	#measure_label_1# 	if you want to write the label of the second measure
+	#measure_value_2# 	if you want to write the value of the second measure
 ]
 
 **Show Title** show/hide title in your custom pop-up.

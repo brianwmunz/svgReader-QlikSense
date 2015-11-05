@@ -95,7 +95,7 @@ function ReplaceAll(str, search, replacement){
 }
 
 // Replace All Keywords
-function ReplaceCustomKeywords(str, d){
+function ReplaceCustomKeywords(str, d, layout){
 	var res;
 	res = ReplaceAll(str, "#dimension_value#", d.printName);
 	res = ReplaceAll(res, "#dimension_label#", layout.qHyperCube.qDimensionInfo[0].qFallbackTitle);
