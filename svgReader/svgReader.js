@@ -286,6 +286,11 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									"height": $element.height() - 10 + "px",
 									"width": $element.width() - 10 + "px"
 								});
+								
+								
+								// set a class attribute to the svg
+								xml.documentElement.setAttribute("class", "svg_map");
+								
 								con.append(xml.documentElement); //append the svg
 								var svgW = d3.select('#' + extID + ' svg').attr("width");
 								var svgH = d3.select('#' + extID + ' svg').attr("height");
@@ -395,6 +400,64 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 										me.selectValues(dim, [value], true);
 									}
 								});
+								
+								
+						// ------------------- ZOOM & DRAG ------------------- 
+						// http://bl.ocks.org/mbostock/6123708#index.html
+						
+						
+						var margin = {top: -5, right: -5, bottom: -5, left: -5};
+						
+						var zoom = d3.behavior.zoom()
+							.scaleExtent([1, 10])
+							.on("zoom", function(d){
+								container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+							});
+						
+						var drag = d3.behavior.drag()
+							.origin(function(d) { return d; })
+							.on("dragstart", function (d) {
+								d3.event.sourceEvent.stopPropagation();
+								d3.select(this).classed("dragging", true);
+							})
+							.on("drag", function (d) {
+								d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+							})
+							.on("dragend", function (d) {
+								d3.select(this).classed("dragging", false);
+							});
+						
+						// global svg
+						//var svg = d3.select("body").append("svg")
+						var svg = d3.select("div#"+extID).append("svg")
+							.attr("id", "svg_parent")
+							.attr("width", w + margin.left + margin.right)
+							.attr("height", h + margin.top + margin.bottom)
+						// first group --> var svg
+						  .append("g")
+							.attr("id", "g_zoom")
+							.attr("transform", "translate(" + margin.left + "," + margin.right + ")")
+							.call(zoom);
+							
+						// in first group, add a rect who catch all events --> var rect
+						var rect = svg.append("rect")
+							.attr("width", w)
+							.attr("height", h)
+							.style("fill", "none")
+							.style("pointer-events", "all");
+
+						// second group --> var container
+						var container = svg.append("g").attr("id", "g_container");
+						
+						// ------ CONTENT ------
+ 
+						$(".svg_map").appendTo($("#g_container"));
+							
+						// ------ CONTENT ------
+						
+						// ------------------- ZOOM & DRAG ------------------- 
+								
+								
 							} else { //the xml didn't load
 								$element.html("<strong>Could not find SVG</strong>");
 							}
