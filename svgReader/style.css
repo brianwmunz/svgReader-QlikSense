@@ -19,14 +19,14 @@
 	width: 100%;
 }
 .tooltip {
-  color: white;
+  /*color: white;*/
   position: absolute;
   text-align: center;
   max-width:300px;
   padding: 8px;
   font: 12px sans-serif;
-  background: black;
-  border: solid 1px black;
+  /*background: black;*/
+  /*border: solid 1px black;*/
   border-radius: 5px;
   pointer-events: none;
   z-index:10000000;
