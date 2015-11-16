@@ -90,12 +90,12 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									ref: "showBorders",
 									defaultValue: false
 								},
-								displayPop: {
-									type: "boolean",
-									label: "Display Pop-up",
-									ref: "pop",
-									defaultValue: true
-								},
+								//displayPop: {
+								//	type: "boolean",
+								//	label: "Display Pop-up",
+								//	ref: "pop",
+								//	defaultValue: true
+								//},
 								textOption: {
 									type: "boolean",
 									label: "Show SVG Text",
@@ -168,42 +168,225 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 							}
 						},
 						// Extra Tooltip Settings
-						header: {
-							label: "Tooltip Settings",
-							type: "items",
-							items: {
-								TtBgColor: { // Background Color
-									type: "string",
-									expression: "optional",
-									component: "color-picker",
-									label: "Background Color",
-									ref: "ttBgColor",
-									show: function (data) {
-										if (data.qHyperCubeDef.qMeasures.length > 1) { 
-											return false;
-										} else {
-											return true;
+						//header: {
+						//	label: "Tooltip Settings",
+						//	type: "items",
+						//	items: {
+						//		TtBgColor: { // Background Color
+						//			type: "string",
+						//			expression: "optional",
+						//			component: "color-picker",
+						//			label: "Background Color",
+						//			ref: "ttBgColor",
+						//			show: function (data) {
+						//				if (data.qHyperCubeDef.qMeasures.length > 1) { 
+						//					return false;
+						//				} else {
+						//					return true;
+						//				}
+						//			},
+						//			defaultValue: 11
+						//		},
+						//		TtFtColor: { // Text Color
+						//			type: "string",
+						//			expression: "optional",
+						//			component: "color-picker",
+						//			label: "Text Color",
+						//			ref: "ttFtColor",
+						//			show: function (data) {
+						//				if (data.qHyperCubeDef.qMeasures.length > 1) { 
+						//					return false;
+						//				} else {
+						//					return true;
+						//				}
+						//			},
+						//			defaultValue: 10
+						//		}
+						//	}
+						//}
+						
+						popupGroup: {
+								label: "Pop-up Settings",
+								type: "items",
+								items: {
+									displayPop: {
+										label: "Show Pop-up",
+										type: "boolean",
+										component: "switch",
+										options: [
+											{
+												label: "Off",
+												value: false
+											}, {
+												label: "On",
+												value: true
+											}],
+										ref: "popup.display", //"pop",
+										defaultValue: true
+									},
+									displayCustomPop: {
+										type: "boolean",
+										label: "Custom Pop-up",
+										ref: "popup.custom",
+										defaultValue: false
+									},
+									displayTitle: {
+										label: "Show Title",
+										type: "boolean",
+										component: "switch",
+										options: [
+											{
+												label: "Off",
+												value: false
+											}, {
+												label: "On",
+												value: true
+											}],
+										ref: "popup.displaytitle",
+										defaultValue: false,
+										// hide if 'd.popup.display' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom;
 										}
 									},
-									defaultValue: 11
-								},
-								TtFtColor: { // Text Color
-									type: "string",
-									expression: "optional",
-									component: "color-picker",
-									label: "Text Color",
-									ref: "ttFtColor",
-									show: function (data) {
-										if (data.qHyperCubeDef.qMeasures.length > 1) { 
-											return false;
-										} else {
-											return true;
+									titlePop:{
+										type: "string",
+										label: "Title",
+										ref: "popup.title", //"poptitle",
+										expression: "optional",
+										defaultValue: "My Title",
+										// hide if 'd.popup.display' OR 'popup.display.title' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom && d.popup.displaytitle;
 										}
 									},
-									defaultValue: 10
+									titleColorPop:{
+										type: "string",
+										label: "Title Color",
+										ref: "popup.titlecolor",
+										expression: "optional",
+										defaultValue: "0,0,0",
+										// hide if 'd.popup.display' OR 'popup.display.title' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom && d.popup.displaytitle;
+										}
+									},
+									displayMeasures: {
+										label: "Show Measure",
+										type: "boolean",
+										component: "switch",
+										options: [
+											{
+												label: "Off",
+												value: false
+											}, {
+												label: "On",
+												value: true
+											}],
+										ref: "popup.measures", //"popmeasures",
+										defaultValue: true,
+										// hide if 'd.popup.display' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom;
+										}
+									},
+									displayMeasuresLabel: {
+										type: "boolean",
+										label: "Show Measure Label",
+										ref: "popup.measureslabel",
+										defaultValue: true,
+										show: function (d) {
+											return d.popup.display && d.popup.custom && d.popup.measures;
+										}
+									},
+									measuresColorPop:{
+										type: "string",
+										label: "Measure Color",
+										ref: "popup.measurescolor",
+										expression: "optional",
+										defaultValue: "0,0,0",
+										// hide if 'd.popup.display' OR 'popup.display.title' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom && d.popup.measures;
+										}
+									},
+									displayAddContent: {
+										label: "Show Additional Content",
+										type: "boolean",
+										component: "switch",
+										options: [
+											{
+												label: "Off",
+												value: false
+											}, {
+												label: "On",
+												value: true
+											}],
+										ref: "popup.displayaddcontent",
+										defaultValue: true,
+										// hide if 'd.popup.display' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom;
+										}
+									},
+									contentPop:{
+										type: "string",
+										label: "Content (html)",
+										ref: "popup.addcontent", //"prop.popcontent",
+										expression: "optional",
+										defaultValue: "",
+										// hide if 'd.popup.display' OR 'popup.displayaddcontent' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom && d.popup.displayaddcontent;
+										}
+									},
+									backgroundColor:{
+										type: "string",
+										label: "Background Color",
+										ref: "popup.backgroundcolor", 
+										expression: "optional",
+										defaultValue: "255,255,255",
+										// hide if 'd.popup.display' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom;
+										}
+									},
+									backgroundAlpha: {
+										type: "integer",
+										label: "Background Opacity",
+										ref: "popup.backgroundopacity",
+										defaultValue: 8,
+										component: "slider",
+										min: 0,
+										max: 10,
+										step: 1,
+										// hide if 'd.popup.display' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom;
+										}
+									},
+									displayBorder: {
+										label: "Show Border",
+										type: "boolean",
+										component: "switch",
+										options: [
+											{
+												label: "Off",
+												value: false
+											}, {
+												label: "On",
+												value: true
+											}],
+										ref: "popup.displayborder",
+										defaultValue: true,
+										// hide if 'd.popup.display' unchecked
+										show: function (d) {
+											return d.popup.display && d.popup.custom;
+										}
+									}
 								}
 							}
-						}
+						
 					}
 				}
 			}
@@ -225,14 +408,14 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 				var coldColor = (typeof layout.coldColorCustom !== 'undefined' && layout.coldColorCustom !=='') ? layout.coldColorCustom : Theme.palette[layout.coldColor];
 				var customSVG = layout.loadSVG;
 				var showText = layout.showText;
-				var tooltip = {
-					backgroundColor: Theme.palette[layout.ttBgColor],
-					textColor: Theme.palette[layout.ttFtColor],
-					width: 0,
-					height: 0,
-					padding: 8,
-					arrowHeight: 8
-				}
+				//var tooltip = {
+				//	backgroundColor: Theme.palette[layout.ttBgColor],
+				//	textColor: Theme.palette[layout.ttFtColor],
+				//	width: 0,
+				//	height: 0,
+				//	padding: 8,
+				//	arrowHeight: 8
+				//}
 				//empty out the extension in order to redraw.  in the future it would be good to not have to redraw the svg but simply re-color it
 				$element.empty();
 				//arrJ is an object that holds all of the relevant data coming from sense that we can match against the SVG
@@ -263,10 +446,23 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 					}
 					arrJ[row[0].qText.toLowerCase()] = { //set the arrJ to the data 
 						"val": {
-							"num": row[1].qNum,
-							"numText": row[1].qText,
+							//"num": row[1].qNum,
+							//"numText": row[1].qText,
 							"qIndex": row[0].qElemNumber
 						},
+						"data": function (d) {
+							var arr = [];
+							
+							for(var i=1; i<row.length; i++){
+								arr[i-1] = {
+									"text": row[i].qFallbackTitle,
+									"num": row[i].qNum,
+									"numText": row[i].qText,
+									"qIndex": row[0].qElemNumber
+								}
+							}
+							return arr;
+						}(),
 						"printName": row[0].qText,
 						"color": thisColor
 					}
@@ -286,13 +482,64 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									"height": $element.height() - 10 + "px",
 									"width": $element.width() - 10 + "px"
 								});
+								
+								
+								// set a class attribute to the svg
+								xml.documentElement.setAttribute("class", "svg_map");
+								
 								con.append(xml.documentElement); //append the svg
 								var svgW = d3.select('#' + extID + ' svg').attr("width");
 								var svgH = d3.select('#' + extID + ' svg').attr("height");
-								$("body").append("<div class=\"tooltip n\"></div>"); //add the tooltip to the body
+								
+								// -------------------------- Tooltip --------------------------
+								// Only one tooltip, if already exists, delete it or not recreate it
+								$( ".tooltip" ).remove();
+								
+								// ------ TOOLTIP : CUSTOMIZATION BACKGROUND COLOR ------
+						
+								if(layout.popup.custom){
+									
+									// change tooltip background color
+									var str_bg_color = layout.popup.backgroundcolor;
+									var isOK = IsOKColor(str_bg_color);
+									
+									// change tooltip background opacity
+									if(layout.popup.backgroundopacity==undefined)
+										layout.popup.backgroundopacity = 8;
+									
+									var backgroundstyle;
+									
+									if(isOK){
+										var str_rgba = "background-color:rgba("+layout.popup.backgroundcolor+","+(layout.popup.backgroundopacity/10)+");"
+									}
+									else{
+										var str_rgba = "background-color:rgba(255, 255, 255, "+(layout.popup.backgroundopacity/10)+");";
+										
+									}
+									
+									// change display border
+									if(layout.popup.displayborder || layout.popup.displayborder==undefined)
+										backgroundstyle = "style=\""+str_rgba+" border: solid 1px #aaa;\"";
+									else
+										backgroundstyle = "style=\""+str_rgba+"\"";
+									
+									
+									$("body").append("<div class=\"tooltip\" "+backgroundstyle+"></div>");
+									
+								}
+								else {
+									$("body").append("<div class=\"tooltip\" style=\"background-color:rgba(255, 255, 255, 0.8); border: solid 1px #aaa;\"></div>"); //add the tooltip to the body
+								}
+								// ------ TOOLTIP : CUSTOMIZATION BACKGROUNG COLOR ------
+								
+								// -------------------------- Tooltip --------------------------
+								
+								
+								
+								//$("body").append("<div class=\"tooltip n\"></div>"); //add the tooltip to the body
 								// Custom Tooltip Color
-								$(".tooltip").css("background", tooltip.backgroundColor).css("color", tooltip.textColor);
-								$(".tooltip:after").css("color", tooltip.backgroundColor);
+								//$(".tooltip").css("background", tooltip.backgroundColor).css("color", tooltip.textColor);
+								//$(".tooltip:after").css("color", tooltip.backgroundColor);
 								var $svg = d3.select('#' + extID + ' svg'); //select the svg 
 								//This is hacky, serialize it into the file instead.
 								if (!($svg.attr("viewBox"))) { //set the viewBox of the SVG
@@ -323,17 +570,110 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									}
 									var t = this;
 									colorIt(t, d, arrJ, false); //color the item
-									if (layout.pop && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
+									//if (layout.pop && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
+									if (layout.popup.display && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
 										$(this).on({
 											mousemove: function (e) {
-												$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
+												//$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
+												
+												// -------------------------- Tooltip --------------------------
+												
+												// adapt tooltip position
+										
+												var map_tooltipX = e.pageX;
+												var map_tooltipY = e.pageY;
+												
+												// shift horizontal -- right
+												if(map_tooltipX > ($element[0].offsetWidth + (w/2))){
+													map_tooltipX -= $(".tooltip").width();
+												}
+												
+												// shift vertical -- down
+												if((map_tooltipY+$(".tooltip").height()) > ($element[0].offsetHeight + (h/2))){
+													map_tooltipY -= $(".tooltip").height();
+												}
+												
+												$(".tooltip").css("left", (map_tooltipX) + "px").css("top", (map_tooltipY) + "px");
+												
+												// -------------------------- Tooltip --------------------------
 											},
 											mouseenter: function () {
-												$(this).css('cursor', 'pointer');
-												$(".tooltip").html(d.printName + ": " + formatNumber(d.val.numText));
-												tooltip.width = $(".tooltip").width() + (tooltip.padding * 2);
-												tooltip.height = $(".tooltip").height() + (tooltip.padding * 2) + tooltip.arrowHeight;
+												
+												// -------------------------- Tooltip --------------------------
+										
+												var res;
+												var content = "";
+												
+												if(layout.popup.custom){
+												
+													// TITLE
+													if(layout.popup.displaytitle && layout.popup.title){
+													
+														// Keywords
+														res = ReplaceCustomKeywords(layout.popup.title, d, layout);
+														
+														// change tooltip title color
+														var str_title_color = layout.popup.titlecolor;
+														var isOK = IsOKColor(str_title_color);
+														var title_style;
+														
+														if(isOK){
+															title_style = "style=\"color:rgb("+str_title_color+");\"";
+														}
+														
+														content += "<h1 "+title_style+">"+res+"</h1>";
+													}
+													
+													// MEASURES
+													if(layout.popup.measures){
+														
+														//console.log(d.val);
+														
+														// change tooltip measure color
+														var str_measure_color = layout.popup.measurescolor;
+														var isOK = IsOKColor(str_measure_color);
+														var measure_style;
+														
+														if(isOK){
+															measure_style = "style=\"color:rgb("+str_measure_color+");\"";
+														}
+
+														for(var i=0; i<d.data.length; i++){
+															content+="<p "+measure_style+">";
+																if(layout.popup.measureslabel || layout.popup.measureslabel==undefined)
+																		content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
+																content += d.data[i].numText;
+															content+="</p>";
+														}
+													}
+													
+													// ADD CONTENT
+													if(layout.popup.displayaddcontent && layout.popup.addcontent){
+														
+														// Keywords
+														res = ReplaceCustomKeywords(layout.popup.addcontent, d, layout);
+														
+														content+="<p>"+res+"</p>";
+													}
+												}
+												else{
+													content += "<p>" + d.printName +"</p>";
+													for(var i=0; i<d.data.length; i++){
+														content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.data[i].numText+"</p>";
+													}
+												}
+												
+												// -------------------------- Tooltip --------------------------
+										
+												$(".tooltip").html(content);
 												$(".tooltip").show();
+												
+												$(this).css('cursor', 'pointer');
+												
+												//$(".tooltip").html(d.printName + ": " + formatNumber(d.val.numText));
+												//tooltip.width = $(".tooltip").width() + (tooltip.padding * 2);
+												//tooltip.height = $(".tooltip").height() + (tooltip.padding * 2) + tooltip.arrowHeight;
+												//$(".tooltip").show();
 											},
 											mouseleave: function () {
 												$(".tooltip").hide();
@@ -362,20 +702,113 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									}
 									var t = this;
 									colorIt(t, d, arrJ, false);
-									if (layout.pop && (this.id.toLowerCase() in arrJ)) {
+									//if (layout.pop && (this.id.toLowerCase() in arrJ)) {
+										if (layout.popup.display && (this.id.toLowerCase() in arrJ)) {
 										$(this).on({
 											mousemove: function (e) {
-												$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
+												//$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
+												
+												// -------------------------- Tooltip --------------------------
+												
+												// adapt tooltip position
+										
+												var map_tooltipX = e.pageX;
+												var map_tooltipY = e.pageY;
+												
+												// shift horizontal -- right
+												if(map_tooltipX > ($element[0].offsetWidth + (w/2))){
+													map_tooltipX -= $(".tooltip").width();
+												}
+												
+												// shift vertical -- down
+												if((map_tooltipY+$(".tooltip").height()) > ($element[0].offsetHeight + (h/2))){
+													map_tooltipY -= $(".tooltip").height();
+												}
+												
+												$(".tooltip").css("left", (map_tooltipX) + "px").css("top", (map_tooltipY) + "px");
+												
+												// -------------------------- Tooltip --------------------------
+														
 											},
 											mouseenter: function () {
-												$(this).css('cursor', 'pointer');
-												$(".tooltip").html(d.printName + ": " + d.val.numText);
-												tooltip.width = $(".tooltip").width() + (tooltip.padding * 2);
-												tooltip.height = $(".tooltip").height() + (tooltip.padding * 2) + tooltip.arrowHeight;
-												$(".tooltip").show();
+												
+												// -------------------------- Tooltip --------------------------
+												
+													var res;
+													var content = "";
+													
+													if(layout.popup.custom){
+														
+														// TITLE
+														if(layout.popup.displaytitle && layout.popup.title){
+															
+															// Keywords
+															res = ReplaceCustomKeywords(layout.popup.title, d, layout);
+												
+															var str_title_color = layout.popup.titlecolor;
+															var isOK = IsOKColor(str_title_color);
+															var title_style;
+															
+															if(isOK){
+																title_style = "style=\"color:rgb("+str_title_color+");\"";
+															}
+															
+															content += "<h1 "+title_style+">"+res+"</h1>";
+														}
+												
+														// MEASURES
+														if(layout.popup.measures){
+															
+															// change tooltip measure color
+															var str_measure_color = layout.popup.measurescolor;
+															var isOK = IsOKColor(str_measure_color);
+															var measure_style;
+															
+															if(isOK){
+																measure_style = "style=\"color:rgb("+str_measure_color+");\"";
+															}
+
+															content += "<p "+measure_style+"><ul>";
+															for(var i=0; i<d.val.length; i++){
+																content+="<li>";
+																	if(layout.popup.measureslabel || layout.popup.measureslabel==undefined)
+																			content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
+																	content += d.val[i].numText;
+																content+="</li>";
+															}
+															content += "</ul></p>";
+															
+														}
+											
+														// ADD CONTENT
+														if(layout.popup.displayaddcontent && layout.popup.addcontent){
+															
+															// Keywords
+															res = ReplaceCustomKeywords(layout.popup.addcontent, d, layout);
+															
+															content+="<p>"+res+"</p>";
+														}
+													}
+													else{
+														content += "<p>" + d.printName +"</p>";
+														for(var i=0; i<d.val.length; i++){
+															content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.val[i].numText+"</p>";
+														}
+													}
+												
+													$(".tooltip").html(content);
+													$(".tooltip").show();
+												
+												// -------------------------- Tooltip --------------------------
+												
+														$(this).css('cursor', 'pointer');
+														//$(".tooltip").html(d.printName + ": " + d.val.numText);
+														//tooltip.width = $(".tooltip").width() + (tooltip.padding * 2);
+														//tooltip.height = $(".tooltip").height() + (tooltip.padding * 2) + tooltip.arrowHeight;
+														//$(".tooltip").show();
 											},
 											mouseleave: function () {
-												$(".tooltip").hide();
+														$(".tooltip").hide();
 											}
 										});
 									}
@@ -395,6 +828,64 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 										me.selectValues(dim, [value], true);
 									}
 								});
+								
+								
+						// ------------------- ZOOM & DRAG ------------------- 
+						// http://bl.ocks.org/mbostock/6123708#index.html
+						
+						
+						var margin = {top: -5, right: -5, bottom: -5, left: -5};
+						
+						var zoom = d3.behavior.zoom()
+							.scaleExtent([1, 10])
+							.on("zoom", function(d){
+								container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+							});
+						
+						var drag = d3.behavior.drag()
+							.origin(function(d) { return d; })
+							.on("dragstart", function (d) {
+								d3.event.sourceEvent.stopPropagation();
+								d3.select(this).classed("dragging", true);
+							})
+							.on("drag", function (d) {
+								d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+							})
+							.on("dragend", function (d) {
+								d3.select(this).classed("dragging", false);
+							});
+						
+						// global svg
+						//var svg = d3.select("body").append("svg")
+						var svg = d3.select("div#"+extID).append("svg")
+							.attr("id", "svg_parent")
+							.attr("width", w + margin.left + margin.right)
+							.attr("height", h + margin.top + margin.bottom)
+						// first group --> var svg
+						  .append("g")
+							.attr("id", "g_zoom")
+							.attr("transform", "translate(" + margin.left + "," + margin.right + ")")
+							.call(zoom);
+							
+						// in first group, add a rect who catch all events --> var rect
+						var rect = svg.append("rect")
+							.attr("width", w)
+							.attr("height", h)
+							.style("fill", "none")
+							.style("pointer-events", "all");
+
+						// second group --> var container
+						var container = svg.append("g").attr("id", "g_container");
+						
+						// ------ CONTENT ------
+ 
+						$(".svg_map").appendTo($("#g_container"));
+							
+						// ------ CONTENT ------
+						
+						// ------------------- ZOOM & DRAG ------------------- 
+								
+								
 							} else { //the xml didn't load
 								$element.html("<strong>Could not find SVG</strong>");
 							}
