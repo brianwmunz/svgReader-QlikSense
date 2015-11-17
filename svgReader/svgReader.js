@@ -57,6 +57,20 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									options: svg_options,
 									defaultValue: 1
 								},
+								SVGCustomAbsolute: {
+                                    type: "boolean",
+                                    label: "Absolute path",
+                                    ref: "loadSVGAbsolute",
+                                    defaultValue: false,
+									show: function (data) {
+                                        if (data.svg == "custom") { //if custom svg is selected, then display this box
+                                            return true;
+                                        } else {
+                                            return false;
+                                        }
+
+                                    }
+                                },
 								SVGCustom: {
 									ref: "loadSVG",
 									label: "Custom SVG Name",
@@ -90,24 +104,12 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									ref: "showBorders",
 									defaultValue: false
 								},
-								//displayPop: {
-								//	type: "boolean",
-								//	label: "Display Pop-up",
-								//	ref: "pop",
-								//	defaultValue: true
-								//},
 								textOption: {
 									type: "boolean",
 									label: "Show SVG Text",
 									ref: "showText",
 									defaultValue: false
 								},
-/*SVGZoom: {
-									type: "boolean",
-									label: "Zoom Selected Regions",
-									ref: "zoom",
-									defaultValue: false
-								},*/
 								DisColor: {
 									type: "string",
 									expression: "optional",
@@ -167,44 +169,6 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 							    }
 							}
 						},
-						// Extra Tooltip Settings
-						//header: {
-						//	label: "Tooltip Settings",
-						//	type: "items",
-						//	items: {
-						//		TtBgColor: { // Background Color
-						//			type: "string",
-						//			expression: "optional",
-						//			component: "color-picker",
-						//			label: "Background Color",
-						//			ref: "ttBgColor",
-						//			show: function (data) {
-						//				if (data.qHyperCubeDef.qMeasures.length > 1) { 
-						//					return false;
-						//				} else {
-						//					return true;
-						//				}
-						//			},
-						//			defaultValue: 11
-						//		},
-						//		TtFtColor: { // Text Color
-						//			type: "string",
-						//			expression: "optional",
-						//			component: "color-picker",
-						//			label: "Text Color",
-						//			ref: "ttFtColor",
-						//			show: function (data) {
-						//				if (data.qHyperCubeDef.qMeasures.length > 1) { 
-						//					return false;
-						//				} else {
-						//					return true;
-						//				}
-						//			},
-						//			defaultValue: 10
-						//		}
-						//	}
-						//}
-						
 						popupGroup: {
 								label: "Pop-up Settings",
 								type: "items",
@@ -422,9 +386,11 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 				var arrJ = {};
 				//colEx determines if a color measure is added
 				var colEx = false;
-				if (layout.qHyperCube.qMeasureInfo.length > 1) {
-					colEx = true;
-				}
+				// ONLY THE FIRST MEASURE INDICATE THE COLOR
+				// more than one measure -- changements
+				//if (layout.qHyperCube.qMeasureInfo.length > 1) {
+				//	colEx = true;
+				//}
 				var maxVal = layout.qHyperCube.qMeasureInfo[0].qMax;
 				var minVal = layout.qHyperCube.qMeasureInfo[0].qMin;
 				//set up the color scale
@@ -433,9 +399,11 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 				$.each(fullMatrix, function () {
 					var row = this;
 					var thisColor = "";
-					if (colEx) { //if a color expression is set, use that color
-						thisColor = row[2].qText;
-					} else { // if one isn't set, use the value of the data to determine the proper color
+					// ONLY THE FIRST MEASURE INDICATE THE COLOR
+					// -- changements
+					//if (colEx) { //if a color expression is set, use that color
+					//	thisColor = row[2].qText;
+					//} else { // if one isn't set, use the value of the data to determine the proper color
 						if (maxVal === minVal) {
 							var myVal = 1;
 						} else {
@@ -443,7 +411,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 						}
 						var scaledColor = vizScale(myVal).hex(); // scale that color
 						thisColor = scaledColor;
-					}
+					//} // -- changements
 					arrJ[row[0].qText.toLowerCase()] = { //set the arrJ to the data 
 						"val": {
 							//"num": row[1].qNum,
@@ -467,11 +435,30 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 						"color": thisColor
 					}
 				});
+				
 				setSVG(qlik, self, layout).then(function (loadThis) {
+					
+					var loadThis = layout.svg; // custom SVG, if it exists
+					var currentPath = "/Extensions/svgReader/";
+					var loadPath;
+					
+					if (layout.svg == "custom") {
+						if(layout.loadSVGAbsolute){
+							loadThis = customSVG; 
+						}
+						else{
+							loadThis = baseUrl + currentPath + customSVG;
+						} 
+					}
+					else{
+						loadThis = currentPath + loadThis;
+					}
+					//console.log(loadThis);
+					
 					if (loadThis == "NO VARIABLE") {
 						$element.html("<strong>No Variable Found With That Name</strong>");
 					} else {
-						d3.xml(baseUrl + "/Extensions/svgReader/" + loadThis, "image/svg+xml", function (xml) { //load the SVG
+						d3.xml(loadThis, "image/svg+xml", function (xml) { //load the SVG
 							if (xml) { //if it loaded properly...
 								$element.css("position", "relative");
 								$element.append("<div id='" + layout.qInfo.qId + "'></div>"); //create the container div
