@@ -73,10 +73,6 @@ The first measure is the value associated with the dimension.  If there isn't a 
 
 
 
-The second measure is the optional color measure.  This can be used to manually set the regions to certain colors, for example, like a traffic light.  Please see the snail and us counties examples.  When a color measure is added, the hot, cold, and disabled properties will disappear.
-
-
-
 **Properties**
 The properties are relatively straightforward.  Please note that the color picker property is not supported and is an undocumented property in Qlik Sense. 
 
@@ -113,7 +109,7 @@ Now an explanation of the properties:
 
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/customPath.PNG)
 
-
+**Absolute path** check it when you use external path. Warrning if you play with cross domain.
 
 **Custom SVG Name** tells the extension where to find the custom SVG you want to load.  This can also be set to an expression as long as it returns a valid SVG path.
 
