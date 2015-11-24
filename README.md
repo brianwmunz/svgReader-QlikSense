@@ -81,31 +81,13 @@ Now an explanation of the properties:
 
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/propsnormal.png)
 
-
+------- SVG Settings -------
 
 **SVG Map** is the list of built in SVG maps.  If you want to load a custom SVG, select the custom SVG option.
 
-
-
 **Show element borders** tells the extension whether or not to put borders around the SVG elements.  Sometimes forcing borders around the elemts makes the extension more readable.
 
-
-
 **Show SVG Text** is an option whether to show text on the custom SVG or not. 
-
-
-
-**Disabled Color** sets the color of regions that are in the SVG but have no data associated to it.
-
-
-
-**Hot Color** sets the color to use for the upper values.
-
-
-
-**Base (Cold) Color** sets the base color to use for the lower values.  This can be used to blend colors.  Or if you simply want to shade one color, set this to white.
-
-
 
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/customPath.PNG)
 
@@ -113,22 +95,45 @@ Now an explanation of the properties:
 
 **Custom SVG Name** tells the extension where to find the custom SVG you want to load.  This can also be set to an expression as long as it returns a valid SVG path.
 
-
-
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/propsCustom.png)
-
-
 
 **Treat Custom SVG as Variable** tells the extension to look for a Qlik Sense variable specified in the Custom SVG text box. 
 
+------- Color Settings -------
+
+**Color Type** set the color calculation "by dimension" or "by measure"
+
+- Color Type = "by dimension"
+
+	**Only first dimension** if true, calculate the color by the first dimension. if false, calculate the color with the second dimension. --> use persistent color
+
+- Color Type = "by measure"
+
+	**Color Calculation** if true, calculate the color by first measure. if false, calculate the color by the second measure (= color expression).
+	
+	- Color Calculation = false
+
+		**Disabled Color** sets the color of regions that are in the SVG but have no data associated to it.
+
+		**Hot Color** sets the color to use for the upper values.
+
+		**Base (Cold) Color** sets the base color to use for the lower values.  This can be used to blend colors.  Or if you simply want to shade one color, set this to white.
+
+		**Custom Hex Color for Hot**
+		
+		**Custom Hex Color for Cold**
+
+------- Pop-up Settings -------
 
 **Show Pop-up** controls whether or not to show a pop-up on mouse over.  The pop-up will simply contain the dimension field and value.
 
 **Custom Pop-up** show/hide more options to custom your pop-up. If you don't check the box, the simple pop-up is visible.
 
 [in the custom pop-up you can use some keywords :
-	#dimension_label# 	if you want to write the label of the dimension
-	#dimension_value# 	if you want to write the value of the dimension
+	#dimension_label_1# 	if you want to write the label of the first dimension
+	#dimension_value_1# 	if you want to write the value of the first dimension
+	#dimension_label_2# 	if you want to write the label of the second dimension
+	#dimension_value_2# 	if you want to write the value of the second dimension
 	#measure_label_1# 	if you want to write the label of the first measure
 	#measure_value_1#	if you want to write the value of the first measure
 	#measure_label_1# 	if you want to write the label of the second measure

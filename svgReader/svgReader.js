@@ -19,8 +19,8 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 				qDimensions: [],
 				qMeasures: [],
 				qInitialDataFetch: [{
-					qWidth: 3,
-					qHeight: 3000
+					qWidth: 4,
+					qHeight: 2500
 				}]
 			}
 		},
@@ -31,7 +31,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 				dimensions: {
 					uses: "dimensions",
 					min: 1,
-					max: 1
+					max: 2
 				},
 				measures: {
 					uses: "measures",
@@ -109,6 +109,55 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									label: "Show SVG Text",
 									ref: "showText",
 									defaultValue: false
+								}
+							}
+						},
+						colorGroup: {
+							label: "Color Settings",
+							type: "items",
+							items: {
+								TypeColor:{
+									label: "Color Type",
+									type: "boolean",
+									component: "switch",
+									options: [
+										{
+											label: "By measure",
+											value: false
+										}, {
+											label: "By dimension",
+											value: true
+										}],
+									ref: "color.type",
+									defaultValue: false
+								},
+								//////////////// BY MEASURE ////////////////
+								OnlyOneMeasure: {
+									label: "Color Calculation",
+									type: "boolean",
+									component: "switch",
+									options: [
+										{
+											label: "Use First",
+											value: true
+										}, {
+											label: "Use Second (color expression)",
+											value: false
+										}],
+									ref: "onlyonemeasure",
+									defaultValue: false,
+									show: function (data) {
+                                        if(data.color.type){
+                                            return false;
+                                        }
+										else{
+											if (data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+												return true;
+											}else{
+												return false;
+											}
+										}
+                                    }
 								},
 								DisColor: {
 									type: "string",
@@ -117,10 +166,16 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									label: "Disabled Color",
 									ref: "disColor",
 									show: function (data) {
-										if (data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+										if(data.color.type){
 											return false;
-										} else {
-											return true;
+										}
+										else{
+											if (!data.onlyonemeasure && data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+												return false;
+											}
+											else{
+												return true;
+											}
 										}
 									},
 									defaultValue: 0
@@ -132,10 +187,16 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									label: "Hot Color (if no measure)",
 									ref: "hotColor",
 									show: function (data) {
-										if (data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+										if(data.color.type){
 											return false;
-										} else {
-											return true;
+										}
+										else{
+											if (!data.onlyonemeasure && data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+												return false;
+											}
+											else{
+												return true;
+											}
 										}
 									},
 									defaultValue: 9
@@ -147,10 +208,15 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									label: "Base (Cold) Color",
 									ref: "coldColor",
 									show: function (data) {
-										if (data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+										if(data.color.type){
 											return false;
-										} else {
-											return true;
+										}
+										else{
+											if (!data.onlyonemeasure && data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+											}
+											else{
+												return true;
+											}
 										}
 									},
 									defaultValue: 10
@@ -159,14 +225,59 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									type: "string",
 									label: 'Custom Hex Color for Hot',
 									ref: 'hotColorCustom',
+									show: function (data) {
+										if(data.color.type){
+											return false;
+										}
+										else{
+											if (!data.onlyonemeasure && data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+												return false;
+											}
+											else{
+												return true;
+											}
+										}
+									},
 									defaultValue: ''
 							    },
 								ColdColorCustom: {
 									type: "string",
 									label: 'Custom Hex Color for Cold',
 									ref: 'coldColorCustom',
+									show: function (data) {
+										if(data.color.type){
+											return false;
+										}
+										else{
+											if (!data.onlyonemeasure && data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+												return false;
+											}
+											else{
+												return true;
+											}
+										}
+									},
 									defaultValue: ''
-							    }
+							    },
+								//////////////// BY DIMENSION ////////////////
+								OnlyOneDimension: {
+                                    type: "boolean",
+                                    label: "Only first dimension",
+                                    ref: "onlyonedimension",
+                                    defaultValue: false,
+									show: function (data) {
+                                        if (data.color.type) { 
+                                            if (data.qHyperCubeDef.qDimensions.length > 1) {
+												return true;
+											}else{
+												return false;
+											}
+                                        } else {
+                                            return false;
+                                        }
+                                
+                                    }
+                                }
 							}
 						},
 						popupGroup: {
@@ -365,6 +476,8 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 				h = $element.height(),
 				w = $element.width();
 			var extID = layout.qInfo.qId;
+			var numDim = layout.qHyperCube.qDimensionInfo.length;
+			
 			senseUtils.pageExtensionData(self, $element, layout, function ($element, layout, fullMatrix, me) { //function that pages the full data set and returns a big hypercube with all of the data
 				//load the properties into variables
 				var disColor = Theme.palette[layout.disColor];
@@ -372,57 +485,108 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 				var coldColor = (typeof layout.coldColorCustom !== 'undefined' && layout.coldColorCustom !=='') ? layout.coldColorCustom : Theme.palette[layout.coldColor];
 				var customSVG = layout.loadSVG;
 				var showText = layout.showText;
-				//var tooltip = {
-				//	backgroundColor: Theme.palette[layout.ttBgColor],
-				//	textColor: Theme.palette[layout.ttFtColor],
-				//	width: 0,
-				//	height: 0,
-				//	padding: 8,
-				//	arrowHeight: 8
-				//}
 				//empty out the extension in order to redraw.  in the future it would be good to not have to redraw the svg but simply re-color it
 				$element.empty();
 				//arrJ is an object that holds all of the relevant data coming from sense that we can match against the SVG
 				var arrJ = {};
 				//colEx determines if a color measure is added
 				var colEx = false;
-				// ONLY THE FIRST MEASURE INDICATE THE COLOR
-				// more than one measure -- changements
-				//if (layout.qHyperCube.qMeasureInfo.length > 1) {
-				//	colEx = true;
-				//}
+				// more than one measure
+				if (!layout.onlyonemeasure && layout.qHyperCube.qMeasureInfo.length > 1) {
+					colEx = true;
+				}
 				var maxVal = layout.qHyperCube.qMeasureInfo[0].qMax;
 				var minVal = layout.qHyperCube.qMeasureInfo[0].qMin;
 				//set up the color scale
 				var vizScale = chroma.scale([coldColor, hotColor]);
 				//iterate through the data and put it into arrJ. this JSON is the same format as the data attached to the SVG elements
+				var cpt = 0;
 				$.each(fullMatrix, function () {
 					var row = this;
 					var thisColor = "";
-					// ONLY THE FIRST MEASURE INDICATE THE COLOR
-					// -- changements
-					//if (colEx) { //if a color expression is set, use that color
-					//	thisColor = row[2].qText;
-					//} else { // if one isn't set, use the value of the data to determine the proper color
-						if (maxVal === minVal) {
-							var myVal = 1;
-						} else {
-							var myVal = (row[1].qNum - minVal) / (maxVal - minVal); // by subtracting the minVal we set the lowest val to zero and the cold color
+					
+					//////////////// BY DIMENSION ////////////////
+					if(layout.color.type) {
+						
+						var maxDim;
+						if(numDim==1 || layout.onlyonedimension){
+							maxDim = layout.qHyperCube.qDimensionInfo[0].qCardinal;
 						}
-						var scaledColor = vizScale(myVal).hex(); // scale that color
-						thisColor = scaledColor;
-					//} // -- changements
+						else{
+							maxDim = layout.qHyperCube.qDimensionInfo[1].qCardinal;
+						}
+							
+							
+						// use the Qlik Sense Theme.colorSchemes
+						var colorScale;
+							
+						switch(maxDim){
+							case 1: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[0];
+							break;
+							case 2: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[1];
+							break;
+							case 3: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[2];
+							break;
+							case 4: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[3];
+							break;
+							case 5: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[4];
+							break;
+							case 6: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[5];
+							break;
+							case 7: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[6];
+							break;
+							case 8: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[7];
+							break;
+							default : colorScale = Theme.colorSchemes.qualitativeScales[1].scale;
+						}
+						
+						if(numDim==1 || layout.onlyonedimension)
+							thisColor = colorScale[row[0].qElemNumber];
+						else
+							thisColor = colorScale[row[1].qElemNumber];
+						
+					}
+					//////////////// BY MEASURE ////////////////
+					else {
+						if (colEx) { //if a color expression is set, use that color
+							thisColor = row[numDim].qText;
+						} else { // if one isn't set, use the value of the data to determine the proper color
+							if (maxVal === minVal) {
+								var myVal = 1;
+							} else {
+								var myVal = (row[numDim].qNum - minVal) / (maxVal - minVal); // by subtracting the minVal we set the lowest val to zero and the cold color
+							}
+							var scaledColor = vizScale(myVal).hex(); // scale that color
+							thisColor = scaledColor;
+						}
+					}
+					
 					arrJ[row[0].qText.toLowerCase()] = { //set the arrJ to the data 
 						"val": {
 							//"num": row[1].qNum,
 							//"numText": row[1].qText,
 							"qIndex": row[0].qElemNumber
 						},
-						"data": function (d) {
+						"dimensions": function (d) {
 							var arr = [];
 							
-							for(var i=1; i<row.length; i++){
-								arr[i-1] = {
+							for(var i=0; i<numDim; i++){
+								//console.log(row);
+								arr[i] = {
+									"text": row[i].qFallbackTitle,
+									"num": row[i].qNum,
+									"numText": row[i].qText,
+									"qIndex": row[0].qElemNumber
+								}
+							}
+							return arr;
+						}(),
+						"measures": function (d) {
+							var arr = [];
+							
+							for(var i=numDim; i<row.length; i++){
+								//console.log(row);
+								arr[i-numDim] = {
 									"text": row[i].qFallbackTitle,
 									"num": row[i].qNum,
 									"numText": row[i].qText,
@@ -469,7 +633,6 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									"height": $element.height() - 10 + "px",
 									"width": $element.width() - 10 + "px"
 								});
-								
 								
 								// set a class attribute to the svg
 								xml.documentElement.setAttribute("class", "svg_map");
@@ -624,12 +787,13 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 														if(isOK){
 															measure_style = "style=\"color:rgb("+str_measure_color+");\"";
 														}
-
-														for(var i=0; i<d.data.length; i++){
+														
+														for(var i=0; i<d.measures.length; i++){
 															content+="<p "+measure_style+">";
 																if(layout.popup.measureslabel || layout.popup.measureslabel==undefined)
 																		content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
-																content += d.data[i].numText;
+																//console.log(d.measures);
+																content += d.measures[i].numText;
 															content+="</p>";
 														}
 													}
@@ -645,8 +809,8 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 												}
 												else{
 													content += "<p>" + d.printName +"</p>";
-													for(var i=0; i<d.data.length; i++){
-														content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.data[i].numText+"</p>";
+													for(var i=0; i<d.measures.length; i++){
+														content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.measures[i].numText+"</p>";
 													}
 												}
 												
@@ -817,7 +981,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 								});
 								
 								
-						// ------------------- ZOOM & DRAG ------------------- 
+						// ------------------- ZOOM & DRAG & ROTATION ------------------- 
 						// http://bl.ocks.org/mbostock/6123708#index.html
 						
 						
@@ -848,20 +1012,64 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 							.attr("id", "svg_parent")
 							.attr("width", w + margin.left + margin.right)
 							.attr("height", h + margin.top + margin.bottom)
-						// first group --> var svg
+						// first group
+						  .append("g")
+							.attr("id", "g_rotate")
+						// second group --> var svg
 						  .append("g")
 							.attr("id", "g_zoom")
 							.attr("transform", "translate(" + margin.left + "," + margin.right + ")")
 							.call(zoom);
-							
-						// in first group, add a rect who catch all events --> var rect
+
+						// in first group, add the rotation buttons
+						var rotate = d3.select("g#g_rotate");
+						
+						rotate.append("svg:image")
+							.attr("id", "fotate_right")
+							.attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_left.png")
+							.attr("height", 50)
+							.attr("width", 50)
+							.style("opacity", "0.5")
+							.on("mouseenter", function(d){
+								d3.select(this).style("opacity", "1");
+							})
+							.on("mouseleave", function(d){
+								d3.select(this).style("opacity", "0.5");
+							})
+							.on("click", function(d){
+								var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
+								var cx = d3.select("g#g_zoom")[0];
+								d3.select("g#g_zoom")
+								.attr("transform", "rotate("+(rot-10)+", "+w/2+", "+h/2+")");
+							});
+						
+						rotate.append("svg:image")
+							.attr("id", "fotate_right")
+							.attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_right.png")
+							.attr("height", 50)
+							.attr("width", 50)
+							.attr("x", w-60)
+							.style("opacity", "0.5")
+							.on("mouseenter", function(d){
+								d3.select(this).style("opacity", "1");
+							})
+							.on("mouseleave", function(d){
+								d3.select(this).style("opacity", "0.5");
+							})
+							.on("click", function(d){
+								var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
+								d3.select("g#g_zoom")
+								.attr("transform", "rotate("+(rot+10)+", "+w/2+", "+h/2+")");
+							});
+
+						// in second group, add a rect who catch all events --> var rect
 						var rect = svg.append("rect")
 							.attr("width", w)
 							.attr("height", h)
 							.style("fill", "none")
 							.style("pointer-events", "all");
 
-						// second group --> var container
+						// third group --> var container
 						var container = svg.append("g").attr("id", "g_container");
 						
 						// ------ CONTENT ------
@@ -870,8 +1078,8 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 							
 						// ------ CONTENT ------
 						
-						// ------------------- ZOOM & DRAG ------------------- 
-								
+						// ------------------- ZOOM & DRAG & ROTATION ------------------- 
+						
 								
 							} else { //the xml didn't load
 								$element.html("<strong>Could not find SVG</strong>");
