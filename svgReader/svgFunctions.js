@@ -96,21 +96,26 @@ function ReplaceAll(str, search, replacement){
 
 // Replace All Keywords
 function ReplaceCustomKeywords(str, d, layout){
-	var res;
-	res = ReplaceAll(str, "#dimension_value#", d.printName);
-	res = ReplaceAll(res, "#dimension_label#", layout.qHyperCube.qDimensionInfo[0].qFallbackTitle);
+	var res = str;
+	//res = ReplaceAll(str, "#dimension_value#", d.printName);
+	//res = ReplaceAll(res, "#dimension_label#", layout.qHyperCube.qDimensionInfo[0].qFallbackTitle);
 	
 	var strval;
 	var strlab;
 	
-	for(var i=0; i<d.data.length; i++){
+	for(var i=0; i<d.dimensions.length; i++){
+		strval = "#dimension_value_"+(i+1)+"#";
+		strlab = "#dimension_label_"+(i+1)+"#";
+		
+		res = ReplaceAll(res, strval, d.dimensions[i].numText);
+		res = ReplaceAll(res, strlab, layout.qHyperCube.qDimensionInfo[i].qFallbackTitle);
+	}
+	
+	for(var i=0; i<d.measures.length; i++){
 		strval = "#measure_value_"+(i+1)+"#";
 		strlab = "#measure_label_"+(i+1)+"#";
 		
-		//console.log(strval);
-		//console.log(strlab);
-		
-		res = ReplaceAll(res, strval, d.data[i].numText);
+		res = ReplaceAll(res, strval, d.measures[i].numText);
 		res = ReplaceAll(res, strlab, layout.qHyperCube.qMeasureInfo[i].qFallbackTitle);
 	}
 
