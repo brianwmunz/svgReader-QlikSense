@@ -44,9 +44,11 @@ function setSVG(qlik, self, layout) {
 }
 var colorIt = function (me, d, arrJ, par) {
     var lid = me.id.toLowerCase();
+	
     if (((lid in arrJ) || (par)) && (me.tagName == "g")) { //if this element hooks to the data (ot its parent does) and it's a g (group)type svg element 
-        $.each(me.children, function () { //for each of the g's children, either color it or loop again (if the child is a g)
-            if (this.tagName == "g") {
+        $.each(me.childNodes, function () { //for each of the g's children, either color it or loop again (if the child is a g)
+            
+			if (this.tagName == "g") {
                 colorIt(this, d, arrJ, true)
             } else {
                 fillSelected(this, d, "c");
@@ -68,6 +70,10 @@ var colorIt = function (me, d, arrJ, par) {
 
 // ------ GLOBAL FUNCTIONS ------
 
+function myIsNaN(o) {
+    return typeof(o) === 'number' && isNaN(o);
+}
+
 // Check Color
 function IsOKColor(str){
 	
@@ -78,15 +84,15 @@ function IsOKColor(str){
 	
 	if(res.length==3){
 		
-		var nan1 = Number.isNaN(parseInt(res[0]));
-		var nan2 = Number.isNaN(parseInt(res[0]));
-		var nan3 = Number.isNaN(parseInt(res[0]));
+		var nan1 = myIsNaN(parseInt(res[0]));
+		var nan2 = myIsNaN(parseInt(res[0]));
+		var nan3 = myIsNaN(parseInt(res[0]));
 		
 		if( !nan1 && !nan2 && !nan3 ) {
 			isOK = true;
 		}
 	}
-	return isOK;
+	return true;
 }
 
 // Replace All

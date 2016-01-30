@@ -109,6 +109,18 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 									label: "Show SVG Text",
 									ref: "showText",
 									defaultValue: false
+								}, 
+								zoomMin:{
+									ref: "zoommin",
+									label: "Min Zoom",
+									type: "number",
+									defaultValue: 0.5
+								}, 
+								zoomMax:{
+									ref: "zoommax",
+									label: "Max Zoom",
+									type: "number",
+									defaultValue: 10
 								}
 							}
 						},
@@ -261,10 +273,35 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 							    },
 								//////////////// BY DIMENSION ////////////////
 								OnlyOneDimension: {
-                                    type: "boolean",
-                                    label: "Only first dimension",
-                                    ref: "onlyonedimension",
-                                    defaultValue: false,
+                                    //type: "boolean",
+                                    //label: "Only first dimension",
+                                    //ref: "onlyonedimension",
+                                    //defaultValue: false,
+									//show: function (data) {
+                                    //    if (data.color.type) { 
+                                    //        if (data.qHyperCubeDef.qDimensions.length > 1) {
+									//			return true;
+									//		}else{
+									//			return false;
+									//		}
+                                    //    } else {
+                                    //        return false;
+                                    //    }
+                                    //
+                                    //}
+									label: "Color Dimension",
+									type: "boolean",
+									component: "switch",
+									options: [
+										{
+											label: "Second Dimension",
+											value: false
+										}, {
+											label: "First Dimension",
+											value: true
+										}],
+									ref: "onlyonedimension",
+									defaultValue: true,
 									show: function (data) {
                                         if (data.color.type) { 
                                             if (data.qHyperCubeDef.qDimensions.length > 1) {
@@ -549,7 +586,7 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 					//////////////// BY MEASURE ////////////////
 					else {
 						if (colEx) { //if a color expression is set, use that color
-							thisColor = row[numDim].qText;
+							thisColor = row[numDim+1].qText; // Counting starts from 0, so numDim is first measure
 						} else { // if one isn't set, use the value of the data to determine the proper color
 							if (maxVal === minVal) {
 								var myVal = 1;
@@ -987,9 +1024,12 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 						
 						var margin = {top: -5, right: -5, bottom: -5, left: -5};
 						
-						var zoom = d3.behavior.zoom()
-							.scaleExtent([1, 10])
-							.on("zoom", function(d){
+						if(layout.zoommin==undefined) layout.zoommin = 0.5;
+						if(layout.zoommax==undefined) layout.zoommax = 10;
+						
+						var zoom = d3.behavior.zoom() // This is simply the definition of the zooming behavior, not the application of it
+							.scaleExtent([layout.zoommin, layout.zoommax])
+							.on("zoom", function(d){ // By definition, d3.event.translate and .scale are known in the callback
 								container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 							});
 						
@@ -1021,11 +1061,11 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 							.attr("transform", "translate(" + margin.left + "," + margin.right + ")")
 							.call(zoom);
 
-						// in first group, add the rotation buttons
+						// in first group, add the ROTATION BUTTONS
 						var rotate = d3.select("g#g_rotate");
 						
 						rotate.append("svg:image")
-							.attr("id", "fotate_right")
+							.attr("id", "btn_rotate_left")
 							.attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_left.png")
 							.attr("height", 50)
 							.attr("width", 50)
@@ -1037,14 +1077,17 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 								d3.select(this).style("opacity", "0.5");
 							})
 							.on("click", function(d){
-								var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
+								var rot = 0;
+								if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
+									rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
+								
 								var cx = d3.select("g#g_zoom")[0];
 								d3.select("g#g_zoom")
 								.attr("transform", "rotate("+(rot-10)+", "+w/2+", "+h/2+")");
 							});
 						
 						rotate.append("svg:image")
-							.attr("id", "fotate_right")
+							.attr("id", "btn_rotate_right")
 							.attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_right.png")
 							.attr("height", 50)
 							.attr("width", 50)
@@ -1057,7 +1100,11 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 								d3.select(this).style("opacity", "0.5");
 							})
 							.on("click", function(d){
-								var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
+								//var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
+								var rot = 0;
+								if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
+									rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
+								
 								d3.select("g#g_zoom")
 								.attr("transform", "rotate("+(rot+10)+", "+w/2+", "+h/2+")");
 							});
