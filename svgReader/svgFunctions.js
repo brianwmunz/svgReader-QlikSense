@@ -92,7 +92,7 @@ function IsOKColor(str){
 			isOK = true;
 		}
 	}
-	return true;
+	return isOK;
 }
 
 // Replace All
