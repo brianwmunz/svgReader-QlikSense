@@ -65,12 +65,13 @@ Installation & Use
 
 **Dimensions**
 The extension only needs one dimension.  This dimension should match the ID of the svg elements.  So if you're using the map of the 50 US states, this dimension should have the two character state abbreviation.
-
+You can add until two dimensions.
 
 
 **Measures**
 The first measure is the value associated with the dimension.  If there isn't a color dimension, this value will be used to shade the regions between two colors.
-
+You can add until two measures.
+The second measure can be used as color associated with the dimension (ckeckbox in color settings).
 
 
 **Properties**

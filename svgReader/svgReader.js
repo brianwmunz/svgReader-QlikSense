@@ -549,12 +549,12 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 					//////////////// BY MEASURE ////////////////
 					else {
 						if (colEx) { //if a color expression is set, use that color
-							thisColor = row[numDim].qText;
+							thisColor = row[2].qText;
 						} else { // if one isn't set, use the value of the data to determine the proper color
 							if (maxVal === minVal) {
 								var myVal = 1;
 							} else {
-								var myVal = (row[numDim].qNum - minVal) / (maxVal - minVal); // by subtracting the minVal we set the lowest val to zero and the cold color
+								var myVal = (row[1].qNum - minVal) / (maxVal - minVal); // by subtracting the minVal we set the lowest val to zero and the cold color
 							}
 							var scaledColor = vizScale(myVal).hex(); // scale that color
 							thisColor = scaledColor;
