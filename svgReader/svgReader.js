@@ -959,11 +959,11 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 															}
 
 															content += "<p "+measure_style+"><ul>";
-															for(var i=0; i<d.val.length; i++){
+															for(var i=0; i<d.measures.length; i++){
 																content+="<li>";
 																	if(layout.popup.measureslabel || layout.popup.measureslabel==undefined)
 																			content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
-																	content += d.val[i].numText;
+																	content += d.measures[i].numText;
 																content+="</li>";
 															}
 															content += "</ul></p>";
@@ -981,8 +981,8 @@ define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions",
 													}
 													else{
 														content += "<p>" + d.printName +"</p>";
-														for(var i=0; i<d.val.length; i++){
-															content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.val[i].numText+"</p>";
+														for(var i=0; i<d.measures.length; i++){
+															content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.measures[i].numText+"</p>";
 														}
 													}
 												
