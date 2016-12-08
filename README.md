@@ -193,9 +193,9 @@ This extension was in high demand so there are several things which could have b
 
 
 *********************************
-Note for Qlik Sense <3.1.2
+**Note for Qlik Sense <3.1.2**
 *********************************
 
 - svgReader->svgReader.js 
-	uncomment Line 7
-	comment/delete Line 8
+	- uncomment Line 7
+	- comment/delete Line 8
