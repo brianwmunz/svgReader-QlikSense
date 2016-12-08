@@ -13,6 +13,8 @@ define([
     //Theme is an unsupported hook into the color picker color themes
     'use strict';
 
+	Theme = JSON.parse(Theme);
+
 	//get baseUrl of extension assets so css and svg can be loaded correctly in both client and mashup
 	var baseUrl = typeof config !== "undefined" ? (config.isSecure ? "https://" : "http://" ) + config.host + (config.port ? ":" + config.port : "" ) + config.prefix : "";
 
@@ -526,6 +528,7 @@ define([
 			
 			senseUtils.pageExtensionData(self, $element, layout, function ($element, layout, fullMatrix, me) { //function that pages the full data set and returns a big hypercube with all of the data
 				//load the properties into variables
+console.log(Theme)
 				var disColor = Theme.palette[layout.disColor];
 				var hotColor = (typeof layout.hotColorCustom !== 'undefined' && layout.hotColorCustom !=='') ? layout.hotColorCustom : Theme.palette[layout.hotColor];
 				var coldColor = (typeof layout.coldColorCustom !== 'undefined' && layout.coldColorCustom !=='') ? layout.coldColorCustom : Theme.palette[layout.coldColor];
