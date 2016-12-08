@@ -44,9 +44,11 @@ function setSVG(qlik, self, layout) {
 }
 var colorIt = function (me, d, arrJ, par) {
     var lid = me.id.toLowerCase();
+	
     if (((lid in arrJ) || (par)) && (me.tagName == "g")) { //if this element hooks to the data (ot its parent does) and it's a g (group)type svg element 
-        $.each(me.children, function () { //for each of the g's children, either color it or loop again (if the child is a g)
-            if (this.tagName == "g") {
+        $.each(me.childNodes, function () { //for each of the g's children, either color it or loop again (if the child is a g)
+            
+			if (this.tagName == "g") {
                 colorIt(this, d, arrJ, true)
             } else {
                 fillSelected(this, d, "c");
@@ -65,3 +67,66 @@ var colorIt = function (me, d, arrJ, par) {
         $(me).attr("fill", d.color);
     }
 }
+
+// ------ GLOBAL FUNCTIONS ------
+
+function myIsNaN(o) {
+    return typeof(o) === 'number' && isNaN(o);
+}
+
+// Check Color
+function IsOKColor(str){
+	
+	if(str==undefined) return false;
+	
+	var isOK = false;
+	var res = str.split(',');
+	
+	if(res.length==3){
+		
+		var nan1 = myIsNaN(parseInt(res[0]));
+		var nan2 = myIsNaN(parseInt(res[0]));
+		var nan3 = myIsNaN(parseInt(res[0]));
+		
+		if( !nan1 && !nan2 && !nan3 ) {
+			isOK = true;
+		}
+	}
+	return isOK;
+}
+
+// Replace All
+function ReplaceAll(str, search, replacement){
+	return str.split(search).join(replacement);
+}
+
+// Replace All Keywords
+function ReplaceCustomKeywords(str, d, layout){
+	var res = str;
+	//res = ReplaceAll(str, "#dimension_value#", d.printName);
+	//res = ReplaceAll(res, "#dimension_label#", layout.qHyperCube.qDimensionInfo[0].qFallbackTitle);
+	
+	var strval;
+	var strlab;
+	
+	for(var i=0; i<d.dimensions.length; i++){
+		strval = "#dimension_value_"+(i+1)+"#";
+		strlab = "#dimension_label_"+(i+1)+"#";
+		
+		res = ReplaceAll(res, strval, d.dimensions[i].numText);
+		res = ReplaceAll(res, strlab, layout.qHyperCube.qDimensionInfo[i].qFallbackTitle);
+	}
+	
+	for(var i=0; i<d.measures.length; i++){
+		strval = "#measure_value_"+(i+1)+"#";
+		strlab = "#measure_label_"+(i+1)+"#";
+		
+		res = ReplaceAll(res, strval, d.measures[i].numText);
+		res = ReplaceAll(res, strlab, layout.qHyperCube.qMeasureInfo[i].qFallbackTitle);
+	}
+
+	return res;
+}
+
+
+// ------ GLOBAL FUNCTIONS ------

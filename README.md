@@ -54,6 +54,9 @@ You can now also set the custom SVG path using a Qlik Sense variable, which coul
 If you create your own custom SVG maps, please contribute them to [Qlik Branch](http://branch.qlik.com)
 
 
+You may custom your tooltip/popup with many options.
+
+
 
 *********************************
 Installation & Use
@@ -62,16 +65,13 @@ Installation & Use
 
 **Dimensions**
 The extension only needs one dimension.  This dimension should match the ID of the svg elements.  So if you're using the map of the 50 US states, this dimension should have the two character state abbreviation.
-
+You can add until two dimensions.
 
 
 **Measures**
 The first measure is the value associated with the dimension.  If there isn't a color dimension, this value will be used to shade the regions between two colors.
-
-
-
-The second measure is the optional color measure.  This can be used to manually set the regions to certain colors, for example, like a traffic light.  Please see the snail and us counties examples.  When a color measure is added, the hot, cold, and disabled properties will disappear.
-
+You can add until two measures.
+The second measure can be used as color associated with the dimension (ckeckbox in color settings).
 
 
 **Properties**
@@ -82,49 +82,84 @@ Now an explanation of the properties:
 
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/propsnormal.png)
 
-
+------- SVG Settings -------
 
 **SVG Map** is the list of built in SVG maps.  If you want to load a custom SVG, select the custom SVG option.
 
-
-
 **Show element borders** tells the extension whether or not to put borders around the SVG elements.  Sometimes forcing borders around the elemts makes the extension more readable.
-
-
-
-**Display Pop-up** controls whether or not to show a pop-up on mouse over.  The pop-up will simply contain the dimension field and value.
-
-
 
 **Show SVG Text** is an option whether to show text on the custom SVG or not. 
 
-
-
-**Disabled Color** sets the color of regions that are in the SVG but have no data associated to it.
-
-
-
-**Hot Color** sets the color to use for the upper values.
-
-
-
-**Base (Cold) Color** sets the base color to use for the lower values.  This can be used to blend colors.  Or if you simply want to shade one color, set this to white.
-
-
-
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/customPath.PNG)
 
-
+**Absolute path** check it when you use external path. Warrning if you play with cross domain.
 
 **Custom SVG Name** tells the extension where to find the custom SVG you want to load.  This can also be set to an expression as long as it returns a valid SVG path.
 
-
-
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/propsCustom.png)
 
-
-
 **Treat Custom SVG as Variable** tells the extension to look for a Qlik Sense variable specified in the Custom SVG text box. 
+
+------- Color Settings -------
+
+**Color Type** set the color calculation "by dimension" or "by measure"
+
+- Color Type = "by dimension"
+
+	**Only first dimension** if true, calculate the color by the first dimension. if false, calculate the color with the second dimension. --> use persistent color
+
+- Color Type = "by measure"
+
+	**Color Calculation** if true, calculate the color by first measure. if false, calculate the color by the second measure (= color expression).
+	
+	- Color Calculation = false
+
+		**Disabled Color** sets the color of regions that are in the SVG but have no data associated to it.
+
+		**Hot Color** sets the color to use for the upper values.
+
+		**Base (Cold) Color** sets the base color to use for the lower values.  This can be used to blend colors.  Or if you simply want to shade one color, set this to white.
+
+		**Custom Hex Color for Hot**
+		
+		**Custom Hex Color for Cold**
+
+------- Pop-up Settings -------
+
+**Show Pop-up** controls whether or not to show a pop-up on mouse over.  The pop-up will simply contain the dimension field and value.
+
+**Custom Pop-up** show/hide more options to custom your pop-up. If you don't check the box, the simple pop-up is visible.
+
+[in the custom pop-up you can use some keywords :
+	#dimension_label_1# 	if you want to write the label of the first dimension
+	#dimension_value_1# 	if you want to write the value of the first dimension
+	#dimension_label_2# 	if you want to write the label of the second dimension
+	#dimension_value_2# 	if you want to write the value of the second dimension
+	#measure_label_1# 	if you want to write the label of the first measure
+	#measure_value_1#	if you want to write the value of the first measure
+	#measure_label_1# 	if you want to write the label of the second measure
+	#measure_value_2# 	if you want to write the value of the second measure
+]
+
+**Show Title** show/hide title in your custom pop-up.
+
+**Title** you can define a custom title. 
+
+**Title Color** you can change the color of the title. For the moment only rgb, so 3 numbers with comma separator. Between 0,0,0 (black) and 255,255,255 (white)
+
+**Show Measure** show/hide a measures list in your custom pop-up.
+
+**Show Measure Label** show/hide the measures labels in your custom pop-up.
+
+**Measure Color** you can change the color of the measures list. For the moment only rgb, so 3 numbers with comma separator. Between 0,0,0 (black) and 255,255,255 (white).
+
+**Show Additional Content** show/hide an additional content. Support html.
+
+**Background Color** you can change the color of the pop-up background. For the moment only rgb, so 3 numbers with comma separator. Between 0,0,0 (black) and 255,255,255 (white).
+
+**Background Opacity** you can change the opacity of the pop-up background.
+
+**Show Border** show/hide the pop-up border.
 
 
 *********************************
