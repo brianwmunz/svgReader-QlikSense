@@ -1,8 +1,17 @@
 /*globals define*/
 var self;
-define(["qlik","jquery", "./d3", "./chroma", "core.utils/theme", "./svgOptions", "./svgFunctions", "./senseUtils"], function (qlik, $, d3, chroma, Theme) {
-	//Theme is an unsupported hook into the color picker color themes
-	'use strict';
+define([
+    "qlik","jquery", 
+    "./d3", 
+    "./chroma", 
+    // "core.utils/theme",  // For Qlik Sense < 3.1.2
+    "text!themes/old/sense/theme.json", // For Qlik Sense >= 3.1.2
+    "./svgOptions", 
+    "./svgFunctions", 
+    "./senseUtils"
+], function (qlik, $, d3, chroma, Theme) {
+    //Theme is an unsupported hook into the color picker color themes
+    'use strict';
 
 	//get baseUrl of extension assets so css and svg can be loaded correctly in both client and mashup
 	var baseUrl = typeof config !== "undefined" ? (config.isSecure ? "https://" : "http://" ) + config.host + (config.port ? ":" + config.port : "" ) + config.prefix : "";
