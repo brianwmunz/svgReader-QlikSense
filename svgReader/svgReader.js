@@ -151,7 +151,7 @@ define([
 											label: "By dimension",
 											value: true
 										}],
-									ref: "color.type",
+									ref: "colorType",
 									defaultValue: false
 								},
 								//////////////// BY MEASURE ////////////////
@@ -170,7 +170,7 @@ define([
 									ref: "onlyonemeasure",
 									defaultValue: false,
 									show: function (data) {
-                                        if(data.color.type){
+                                        if(data.colorType){
                                             return false;
                                         }
 										else{
@@ -189,7 +189,7 @@ define([
 									label: "Disabled Color",
 									ref: "disColor",
 									show: function (data) {
-										if(data.color.type){
+										if(data.colorType){
 											return false;
 										}
 										else{
@@ -210,7 +210,7 @@ define([
 									label: "Hot Color (if no measure)",
 									ref: "hotColor",
 									show: function (data) {
-										if(data.color.type){
+										if(data.colorType){
 											return false;
 										}
 										else{
@@ -231,7 +231,7 @@ define([
 									label: "Base (Cold) Color",
 									ref: "coldColor",
 									show: function (data) {
-										if(data.color.type){
+										if(data.colorType){
 											return false;
 										}
 										else{
@@ -249,7 +249,7 @@ define([
 									label: 'Custom Hex Color for Hot',
 									ref: 'hotColorCustom',
 									show: function (data) {
-										if(data.color.type){
+										if(data.colorType){
 											return false;
 										}
 										else{
@@ -268,7 +268,7 @@ define([
 									label: 'Custom Hex Color for Cold',
 									ref: 'coldColorCustom',
 									show: function (data) {
-										if(data.color.type){
+										if(data.colorType){
 											return false;
 										}
 										else{
@@ -289,7 +289,7 @@ define([
                                     //ref: "onlyonedimension",
                                     //defaultValue: false,
 									//show: function (data) {
-                                    //    if (data.color.type) { 
+                                    //    if (data.colorType) { 
                                     //        if (data.qHyperCubeDef.qDimensions.length > 1) {
 									//			return true;
 									//		}else{
@@ -314,7 +314,7 @@ define([
 									ref: "onlyonedimension",
 									defaultValue: true,
 									show: function (data) {
-                                        if (data.color.type) { 
+                                        if (data.colorType) { 
                                             if (data.qHyperCubeDef.qDimensions.length > 1) {
 												return true;
 											}else{
@@ -553,9 +553,8 @@ console.log(Theme)
 				$.each(fullMatrix, function () {
 					var row = this;
 					var thisColor = "";
-					
 					//////////////// BY DIMENSION ////////////////
-					if(layout.color.type) {
+					if(layout.colorType) {
 						
 						var maxDim;
 						if(numDim==1 || layout.onlyonedimension){
