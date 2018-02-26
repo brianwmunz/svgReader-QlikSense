@@ -344,13 +344,13 @@ define([
 												label: "On",
 												value: true
 											}],
-										ref: "popup.display", //"pop",
+										ref: "popupDisplay", //"pop",
 										defaultValue: true
 									},
 									displayCustomPop: {
 										type: "boolean",
 										label: "Custom Pop-up",
-										ref: "popup.custom",
+										ref: "popupCustom",
 										defaultValue: false
 									},
 									displayTitle: {
@@ -365,33 +365,33 @@ define([
 												label: "On",
 												value: true
 											}],
-										ref: "popup.displaytitle",
+										ref: "popupDisplaytitle",
 										defaultValue: false,
-										// hide if 'd.popup.display' unchecked
+										// hide if 'd.popupDisplay' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom;
+											return d.popupDisplay && d.popupCustom;
 										}
 									},
 									titlePop:{
 										type: "string",
 										label: "Title",
-										ref: "popup.title", //"poptitle",
+										ref: "popupTitle", //"poptitle",
 										expression: "optional",
 										defaultValue: "My Title",
-										// hide if 'd.popup.display' OR 'popup.display.title' unchecked
+										// hide if 'd.popupDisplay' OR 'popupDisplay.title' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom && d.popup.displaytitle;
+											return d.popupDisplay && d.popupCustom && d.popupDisplaytitle;
 										}
 									},
 									titleColorPop:{
 										type: "string",
 										label: "Title Color",
-										ref: "popup.titlecolor",
+										ref: "popupTitlecolor",
 										expression: "optional",
 										defaultValue: "0,0,0",
-										// hide if 'd.popup.display' OR 'popup.display.title' unchecked
+										// hide if 'd.popupDisplay' OR 'popupDisplay.title' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom && d.popup.displaytitle;
+											return d.popupDisplay && d.popupCustom && d.popupDisplaytitle;
 										}
 									},
 									displayMeasures: {
@@ -406,31 +406,31 @@ define([
 												label: "On",
 												value: true
 											}],
-										ref: "popup.measures", //"popmeasures",
+										ref: "popupMeasures", //"popmeasures",
 										defaultValue: true,
-										// hide if 'd.popup.display' unchecked
+										// hide if 'd.popupDisplay' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom;
+											return d.popupDisplay && d.popupCustom;
 										}
 									},
 									displayMeasuresLabel: {
 										type: "boolean",
 										label: "Show Measure Label",
-										ref: "popup.measureslabel",
+										ref: "popupMeasureslabel",
 										defaultValue: true,
 										show: function (d) {
-											return d.popup.display && d.popup.custom && d.popup.measures;
+											return d.popupDisplay && d.popupCustom && d.popupMeasures;
 										}
 									},
 									measuresColorPop:{
 										type: "string",
 										label: "Measure Color",
-										ref: "popup.measurescolor",
+										ref: "popupMeasurescolor",
 										expression: "optional",
 										defaultValue: "0,0,0",
-										// hide if 'd.popup.display' OR 'popup.display.title' unchecked
+										// hide if 'd.popupDisplay' OR 'popupDisplay.title' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom && d.popup.measures;
+											return d.popupDisplay && d.popupCustom && d.popupMeasures;
 										}
 									},
 									displayAddContent: {
@@ -445,47 +445,47 @@ define([
 												label: "On",
 												value: true
 											}],
-										ref: "popup.displayaddcontent",
+										ref: "popupDisplayaddcontent",
 										defaultValue: true,
-										// hide if 'd.popup.display' unchecked
+										// hide if 'd.popupDisplay' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom;
+											return d.popupDisplay && d.popupCustom;
 										}
 									},
 									contentPop:{
 										type: "string",
 										label: "Content (html)",
-										ref: "popup.addcontent", //"prop.popcontent",
+										ref: "popupAddcontent", //"prop.popcontent",
 										expression: "optional",
 										defaultValue: "",
-										// hide if 'd.popup.display' OR 'popup.displayaddcontent' unchecked
+										// hide if 'd.popupDisplay' OR 'popupDisplayaddcontent' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom && d.popup.displayaddcontent;
+											return d.popupDisplay && d.popupCustom && d.popupDisplayaddcontent;
 										}
 									},
 									backgroundColor:{
 										type: "string",
 										label: "Background Color",
-										ref: "popup.backgroundcolor", 
+										ref: "popupBackgroundcolor", 
 										expression: "optional",
 										defaultValue: "255,255,255",
-										// hide if 'd.popup.display' unchecked
+										// hide if 'd.popupDisplay' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom;
+											return d.popupDisplay && d.popupCustom;
 										}
 									},
 									backgroundAlpha: {
 										type: "integer",
 										label: "Background Opacity",
-										ref: "popup.backgroundopacity",
+										ref: "popupBackgroundopacity",
 										defaultValue: 8,
 										component: "slider",
 										min: 0,
 										max: 10,
 										step: 1,
-										// hide if 'd.popup.display' unchecked
+										// hide if 'd.popupDisplay' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom;
+											return d.popupDisplay && d.popupCustom;
 										}
 									},
 									displayBorder: {
@@ -500,11 +500,11 @@ define([
 												label: "On",
 												value: true
 											}],
-										ref: "popup.displayborder",
+										ref: "popupDisplayborder",
 										defaultValue: true,
-										// hide if 'd.popup.display' unchecked
+										// hide if 'd.popupDisplay' unchecked
 										show: function (d) {
-											return d.popup.display && d.popup.custom;
+											return d.popupDisplay && d.popupCustom;
 										}
 									}
 								}
@@ -697,28 +697,28 @@ console.log(Theme)
 								
 								// ------ TOOLTIP : CUSTOMIZATION BACKGROUND COLOR ------
 						
-								if(layout.popup.custom){
+								if(layout.popupCustom){
 									
 									// change tooltip background color
-									var str_bg_color = layout.popup.backgroundcolor;
+									var str_bg_color = layout.popupBackgroundcolor;
 									var isOK = IsOKColor(str_bg_color);
 									
 									// change tooltip background opacity
-									if(layout.popup.backgroundopacity==undefined)
-										layout.popup.backgroundopacity = 8;
+									if(layout.popupBackgroundopacity==undefined)
+										layout.popupBackgroundopacity = 8;
 									
 									var backgroundstyle;
 									
 									if(isOK){
-										var str_rgba = "background-color:rgba("+layout.popup.backgroundcolor+","+(layout.popup.backgroundopacity/10)+");"
+										var str_rgba = "background-color:rgba("+layout.popupBackgroundcolor+","+(layout.popupBackgroundopacity/10)+");"
 									}
 									else{
-										var str_rgba = "background-color:rgba(255, 255, 255, "+(layout.popup.backgroundopacity/10)+");";
+										var str_rgba = "background-color:rgba(255, 255, 255, "+(layout.popupBackgroundopacity/10)+");";
 										
 									}
 									
 									// change display border
-									if(layout.popup.displayborder || layout.popup.displayborder==undefined)
+									if(layout.popupDisplayborder || layout.popupDisplayborder==undefined)
 										backgroundstyle = "style=\""+str_rgba+" border: solid 1px #aaa;\"";
 									else
 										backgroundstyle = "style=\""+str_rgba+"\"";
@@ -771,7 +771,7 @@ console.log(Theme)
 									var t = this;
 									colorIt(t, d, arrJ, false); //color the item
 									//if (layout.pop && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
-									if (layout.popup.display && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
+									if (layout.popupDisplay && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
 										$(this).on({
 											mousemove: function (e) {
 												//$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
@@ -804,16 +804,16 @@ console.log(Theme)
 												var res;
 												var content = "";
 												
-												if(layout.popup.custom){
+												if(layout.popupCustom){
 												
 													// TITLE
-													if(layout.popup.displaytitle && layout.popup.title){
+													if(layout.popupDisplaytitle && layout.popupTitle){
 													
 														// Keywords
-														res = ReplaceCustomKeywords(layout.popup.title, d, layout);
+														res = ReplaceCustomKeywords(layout.popupTitle, d, layout);
 														
 														// change tooltip title color
-														var str_title_color = layout.popup.titlecolor;
+														var str_title_color = layout.popupTitlecolor;
 														var isOK = IsOKColor(str_title_color);
 														var title_style;
 														
@@ -825,12 +825,12 @@ console.log(Theme)
 													}
 													
 													// MEASURES
-													if(layout.popup.measures){
+													if(layout.popupMeasures){
 														
 														//console.log(d.val);
 														
 														// change tooltip measure color
-														var str_measure_color = layout.popup.measurescolor;
+														var str_measure_color = layout.popupMeasurescolor;
 														var isOK = IsOKColor(str_measure_color);
 														var measure_style;
 														
@@ -840,7 +840,7 @@ console.log(Theme)
 														
 														for(var i=0; i<d.measures.length; i++){
 															content+="<p "+measure_style+">";
-																if(layout.popup.measureslabel || layout.popup.measureslabel==undefined)
+																if(layout.popupMeasureslabel || layout.popupMeasureslabel==undefined)
 																		content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
 																//console.log(d.measures);
 																content += d.measures[i].numText;
@@ -849,10 +849,10 @@ console.log(Theme)
 													}
 													
 													// ADD CONTENT
-													if(layout.popup.displayaddcontent && layout.popup.addcontent){
+													if(layout.popupDisplayaddcontent && layout.popupAddcontent){
 														
 														// Keywords
-														res = ReplaceCustomKeywords(layout.popup.addcontent, d, layout);
+														res = ReplaceCustomKeywords(layout.popupAddcontent, d, layout);
 														
 														content+="<p>"+res+"</p>";
 													}
@@ -904,7 +904,7 @@ console.log(Theme)
 									var t = this;
 									colorIt(t, d, arrJ, false);
 									//if (layout.pop && (this.id.toLowerCase() in arrJ)) {
-										if (layout.popup.display && (this.id.toLowerCase() in arrJ)) {
+										if (layout.popupDisplay && (this.id.toLowerCase() in arrJ)) {
 										$(this).on({
 											mousemove: function (e) {
 												//$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
@@ -938,15 +938,15 @@ console.log(Theme)
 													var res;
 													var content = "";
 													
-													if(layout.popup.custom){
+													if(layout.popupCustom){
 														
 														// TITLE
-														if(layout.popup.displaytitle && layout.popup.title){
+														if(layout.popupDisplaytitle && layout.popupTitle){
 															
 															// Keywords
-															res = ReplaceCustomKeywords(layout.popup.title, d, layout);
+															res = ReplaceCustomKeywords(layout.popupTitle, d, layout);
 												
-															var str_title_color = layout.popup.titlecolor;
+															var str_title_color = layout.popupTitlecolor;
 															var isOK = IsOKColor(str_title_color);
 															var title_style;
 															
@@ -958,10 +958,10 @@ console.log(Theme)
 														}
 												
 														// MEASURES
-														if(layout.popup.measures){
+														if(layout.popupMeasures){
 															
 															// change tooltip measure color
-															var str_measure_color = layout.popup.measurescolor;
+															var str_measure_color = layout.popupMeasurescolor;
 															var isOK = IsOKColor(str_measure_color);
 															var measure_style;
 															
@@ -972,7 +972,7 @@ console.log(Theme)
 															content += "<p "+measure_style+"><ul>";
 															for(var i=0; i<d.measures.length; i++){
 																content+="<li>";
-																	if(layout.popup.measureslabel || layout.popup.measureslabel==undefined)
+																	if(layout.popupMeasureslabel || layout.popupMeasureslabel==undefined)
 																			content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
 																	content += d.measures[i].numText;
 																content+="</li>";
@@ -982,10 +982,10 @@ console.log(Theme)
 														}
 											
 														// ADD CONTENT
-														if(layout.popup.displayaddcontent && layout.popup.addcontent){
+														if(layout.popupDisplayaddcontent && layout.popupAddcontent){
 															
 															// Keywords
-															res = ReplaceCustomKeywords(layout.popup.addcontent, d, layout);
+															res = ReplaceCustomKeywords(layout.popupAddcontent, d, layout);
 															
 															content+="<p>"+res+"</p>";
 														}
