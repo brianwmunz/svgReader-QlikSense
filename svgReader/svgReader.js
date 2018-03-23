@@ -121,6 +121,12 @@ define([
 									ref: "showText",
 									defaultValue: false
 								}, 
+								hideRotationArrows: {
+									type: "boolean",
+									label: "Hide Rotation Arrows",
+									ref: "hideRotation",
+									defaultValue: false
+								}, 
 								zoomMin:{
 									ref: "zoommin",
 									label: "Min Zoom",
@@ -525,10 +531,8 @@ define([
 				w = $element.width();
 			var extID = layout.qInfo.qId;
 			var numDim = layout.qHyperCube.qDimensionInfo.length;
-			
 			senseUtils.pageExtensionData(self, $element, layout, function ($element, layout, fullMatrix, me) { //function that pages the full data set and returns a big hypercube with all of the data
 				//load the properties into variables
-console.log(Theme)
 				var disColor = Theme.palette[layout.disColor];
 				var hotColor = (typeof layout.hotColorCustom !== 'undefined' && layout.hotColorCustom !=='') ? layout.hotColorCustom : Theme.palette[layout.hotColor];
 				var coldColor = (typeof layout.coldColorCustom !== 'undefined' && layout.coldColorCustom !=='') ? layout.coldColorCustom : Theme.palette[layout.coldColor];
@@ -667,7 +671,6 @@ console.log(Theme)
 					else{
 						loadThis = currentPath + loadThis;
 					}
-					//console.log(loadThis);
 					
 					if (loadThis == "NO VARIABLE") {
 						$element.html("<strong>No Variable Found With That Name</strong>");
@@ -1073,54 +1076,58 @@ console.log(Theme)
 							.attr("id", "g_zoom")
 							.attr("transform", "translate(" + margin.left + "," + margin.right + ")")
 							.call(zoom);
+			
+                        // in first group, add the ROTATION BUTTONS
+                        console.log(layout.hideRotation)
+                        if (!layout.hideRotation) {
+                            var rotate = d3.select("g#g_rotate");
+                            
+                            rotate.append("svg:image")
+                                .attr("id", "btn_rotate_left")
+                                .attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_left.png")
+                                .attr("height", 50)
+                                .attr("width", 50)
+                                .style("opacity", "0.5")
+                                .on("mouseenter", function(d){
+                                    d3.select(this).style("opacity", "1");
+                                })
+                                .on("mouseleave", function(d){
+                                    d3.select(this).style("opacity", "0.5");
+                                })
+                                .on("click", function(d){
+                                    var rot = 0;
+                                    if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
+                                        rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
+                                    
+                                    var cx = d3.select("g#g_zoom")[0];
+                                    d3.select("g#g_zoom")
+                                    .attr("transform", "rotate("+(rot-10)+", "+w/2+", "+h/2+")");
+                                });
+                            
+                            rotate.append("svg:image")
+                                .attr("id", "btn_rotate_right")
+                                .attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_right.png")
+                                .attr("height", 50)
+                                .attr("width", 50)
+                                .attr("x", w-60)
+                                .style("opacity", "0.5")
+                                .on("mouseenter", function(d){
+                                    d3.select(this).style("opacity", "1");
+                                })
+                                .on("mouseleave", function(d){
+                                    d3.select(this).style("opacity", "0.5");
+                                })
+                                .on("click", function(d){
+                                    //var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
+                                    var rot = 0;
+                                    if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
+                                        rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
+                                    
+                                    d3.select("g#g_zoom")
+                                    .attr("transform", "rotate("+(rot+10)+", "+w/2+", "+h/2+")");
+                                });
 
-						// in first group, add the ROTATION BUTTONS
-						var rotate = d3.select("g#g_rotate");
-						
-						rotate.append("svg:image")
-							.attr("id", "btn_rotate_left")
-							.attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_left.png")
-							.attr("height", 50)
-							.attr("width", 50)
-							.style("opacity", "0.5")
-							.on("mouseenter", function(d){
-								d3.select(this).style("opacity", "1");
-							})
-							.on("mouseleave", function(d){
-								d3.select(this).style("opacity", "0.5");
-							})
-							.on("click", function(d){
-								var rot = 0;
-								if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
-									rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
-								
-								var cx = d3.select("g#g_zoom")[0];
-								d3.select("g#g_zoom")
-								.attr("transform", "rotate("+(rot-10)+", "+w/2+", "+h/2+")");
-							});
-						
-						rotate.append("svg:image")
-							.attr("id", "btn_rotate_right")
-							.attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_right.png")
-							.attr("height", 50)
-							.attr("width", 50)
-							.attr("x", w-60)
-							.style("opacity", "0.5")
-							.on("mouseenter", function(d){
-								d3.select(this).style("opacity", "1");
-							})
-							.on("mouseleave", function(d){
-								d3.select(this).style("opacity", "0.5");
-							})
-							.on("click", function(d){
-								//var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
-								var rot = 0;
-								if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
-									rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
-								
-								d3.select("g#g_zoom")
-								.attr("transform", "rotate("+(rot+10)+", "+w/2+", "+h/2+")");
-							});
+                            }
 
 						// in second group, add a rect who catch all events --> var rect
 						var rect = svg.append("rect")
