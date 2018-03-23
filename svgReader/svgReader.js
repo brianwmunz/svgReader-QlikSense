@@ -678,7 +678,8 @@ define([
 						d3.xml(loadThis, "image/svg+xml", function (xml) { //load the SVG
 							if (xml) { //if it loaded properly...
 								$element.css("position", "relative");
-								$element.append("<div id='" + layout.qInfo.qId + "'></div>"); //create the container div
+                                console.log(extID)
+								$element.append("<div id='" + extID + "'></div>"); //create the container div
 								var borders = layout.showBorders; //show borders?
 								var con = $("#" + extID);
 								con.css({ //set height and width of container
@@ -1063,7 +1064,6 @@ define([
 							});
 						
 						// global svg
-						//var svg = d3.select("body").append("svg")
 						var svg = d3.select("div#"+extID).append("svg")
 							.attr("id", "svg_parent")
 							.attr("width", w + margin.left + margin.right)
@@ -1078,7 +1078,6 @@ define([
 							.call(zoom);
 			
                         // in first group, add the ROTATION BUTTONS
-                        console.log(layout.hideRotation)
                         if (!layout.hideRotation) {
                             var rotate = d3.select("g#g_rotate");
                             
@@ -1141,7 +1140,7 @@ define([
 						
 						// ------ CONTENT ------
  
-						$(".svg_map").appendTo($("#g_container"));
+						$("#" + extID + ".svg_map").appendTo($("#g_container"));
 							
 						// ------ CONTENT ------
 						
