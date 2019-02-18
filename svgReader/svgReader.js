@@ -4,13 +4,11 @@ define([
     "qlik","jquery", 
     "./d3", 
     "./chroma", 
-    // "core.utils/theme",  // For Qlik Sense < 3.1.2
-    "text!themes/old/sense/theme.json", // For Qlik Sense >= 3.1.2
+	"text!assets/external/sense-themes-default/sense/theme.json", // For Qlik Sense >= April 2018
     "./svgOptions", 
     "./svgFunctions", 
     "./senseUtils"
 ], function (qlik, $, d3, chroma, Theme) {
-    //Theme is an unsupported hook into the color picker color themes
     'use strict';
 
 	Theme = JSON.parse(Theme);
@@ -189,11 +187,14 @@ define([
                                     }
 								},
 								DisColor: {
-									type: "string",
-									expression: "optional",
 									component: "color-picker",
 									label: "Disabled Color",
 									ref: "disColor",
+									type: "object",
+									dualOutput: true,
+									defaultValue: {
+										color: "#d2d2d2"
+									},
 									show: function (data) {
 										if(data.colorType){
 											return false;
@@ -206,15 +207,17 @@ define([
 												return true;
 											}
 										}
-									},
-									defaultValue: 0
+									}
 								},
 								HotColor: {
-									type: "string",
-									expression: "optional",
 									component: "color-picker",
-									label: "Hot Color (if no measure)",
+									label: "Hot Color",
 									ref: "hotColor",
+									type: "object",
+									dualOutput: true,
+									defaultValue: {
+										color: "#AE1C3E"
+									},
 									show: function (data) {
 										if(data.colorType){
 											return false;
@@ -227,15 +230,17 @@ define([
 												return true;
 											}
 										}
-									},
-									defaultValue: 9
+									}
 								},
 								ColdColor: {
-									type: "string",
-									expression: "optional",
 									component: "color-picker",
 									label: "Base (Cold) Color",
 									ref: "coldColor",
+									type: "object",
+									dualOutput: true,
+									defaultValue: {
+										color: "#3D52A1"
+									},
 									show: function (data) {
 										if(data.colorType){
 											return false;
@@ -247,8 +252,7 @@ define([
 												return true;
 											}
 										}
-									},
-									defaultValue: 10
+									}
 								},
 								HotColorCustom: {
 									type: "string",
@@ -533,9 +537,9 @@ define([
 			var numDim = layout.qHyperCube.qDimensionInfo.length;
 			senseUtils.pageExtensionData(self, $element, layout, function ($element, layout, fullMatrix, me) { //function that pages the full data set and returns a big hypercube with all of the data
 				//load the properties into variables
-				var disColor = Theme.palette[layout.disColor];
-				var hotColor = (typeof layout.hotColorCustom !== 'undefined' && layout.hotColorCustom !=='') ? layout.hotColorCustom : Theme.palette[layout.hotColor];
-				var coldColor = (typeof layout.coldColorCustom !== 'undefined' && layout.coldColorCustom !=='') ? layout.coldColorCustom : Theme.palette[layout.coldColor];
+				var disColor = (typeof layout.disColor !== 'undefined' && layout.disColor.color) ? layout.disColor.color : Theme.dataColors.nullColor ? Theme.dataColors.nullColor : "#d2d2d2";
+				var hotColor = (typeof layout.hotColorCustom !== 'undefined' && layout.hotColorCustom !=='') ? layout.hotColorCustom : (typeof layout.hotColor !== 'undefined' && layout.hotColor.color) ? layout.hotColor.color : "#AE1C3E";
+				var coldColor = (typeof layout.coldColorCustom !== 'undefined' && layout.coldColorCustom !=='') ? layout.coldColorCustom : (typeof layout.coldColor !== 'undefined' && layout.coldColor.color) ? layout.coldColor.color : "#3D52A1";
 				var customSVG = layout.loadSVG;
 				var showText = layout.showText;
 				//empty out the extension in order to redraw.  in the future it would be good to not have to redraw the svg but simply re-color it
@@ -554,49 +558,45 @@ define([
 				var vizScale = chroma.scale([coldColor, hotColor]);
 				//iterate through the data and put it into arrJ. this JSON is the same format as the data attached to the SVG elements
 				var cpt = 0;
+				var maxDim, colorScale = [];
+				
+				if(numDim==1 || layout.onlyonedimension){
+					maxDim = layout.qHyperCube.qDimensionInfo[0].qCardinal;
+				}
+				else{
+					maxDim = layout.qHyperCube.qDimensionInfo[1].qCardinal;
+				}
+				if(layout.colorType) {
+					// use the Qlik Sense Theme
+					if (Theme.palettes.data.length > 0) {
+						if (Theme.palettes.data[0].type === 'pyramid' 
+							&& Theme.palettes.data[0].scale.length >= maxDim -1) {
+							colorScale = Theme.palettes.data[0].scale[maxDim -1];
+						} else if (Theme.palettes.data[0].type === 'row' ) {
+							colorScale = Theme.palettes.data[0].scale;
+						} else if (Theme.palettes.data.length > 1 
+							&& Theme.palettes.data[1].type === 'row' ) {
+							colorScale = Theme.palettes.data[1].scale;
+						}
+					} else {
+						// set some default scale as fallback (12 colors standard)
+	 					colorScale = ["#332288", "#6699cc", "#44aa99", "#88ccee", "#117733", "#999933", "#ddcc77", "#661100", "#cc6677", "#882255", "#aa4499"];
+					}
+				}
+
 				$.each(fullMatrix, function () {
-					var row = this;
+					var row = this, col = 0;
 					var thisColor = "";
 					//////////////// BY DIMENSION ////////////////
+					if(!(numDim==1 || layout.onlyonedimension)) {
+						col = 1;
+					}
 					if(layout.colorType) {
-						
-						var maxDim;
-						if(numDim==1 || layout.onlyonedimension){
-							maxDim = layout.qHyperCube.qDimensionInfo[0].qCardinal;
+						if (row[col].qElemNumber >= 0) {
+							thisColor = colorScale[row[col].qElemNumber % colorScale.length];
+						} else {
+							thisColor = Theme.dataColors.nullColor;
 						}
-						else{
-							maxDim = layout.qHyperCube.qDimensionInfo[1].qCardinal;
-						}
-							
-							
-						// use the Qlik Sense Theme.colorSchemes
-						var colorScale;
-							
-						switch(maxDim){
-							case 1: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[0];
-							break;
-							case 2: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[1];
-							break;
-							case 3: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[2];
-							break;
-							case 4: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[3];
-							break;
-							case 5: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[4];
-							break;
-							case 6: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[5];
-							break;
-							case 7: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[6];
-							break;
-							case 8: colorScale = Theme.colorSchemes.qualitativeScales[0].scale[7];
-							break;
-							default : colorScale = Theme.colorSchemes.qualitativeScales[1].scale;
-						}
-						
-						if(numDim==1 || layout.onlyonedimension)
-							thisColor = colorScale[row[0].qElemNumber];
-						else
-							thisColor = colorScale[row[1].qElemNumber];
-						
 					}
 					//////////////// BY MEASURE ////////////////
 					else {
@@ -657,7 +657,7 @@ define([
 				setSVG(qlik, self, layout).then(function (loadThis) {
 					
 					var loadThis = layout.svg; // custom SVG, if it exists
-					var currentPath = "/Extensions/svgReader/";
+					var currentPath = "/extensions/svgReader/";
 					var loadPath;
 					
 					if (layout.svg == "custom") {
@@ -671,14 +671,14 @@ define([
 					else{
 						loadThis = currentPath + loadThis;
 					}
-					
+
 					if (loadThis == "NO VARIABLE") {
 						$element.html("<strong>No Variable Found With That Name</strong>");
 					} else {
 						d3.xml(loadThis, "image/svg+xml", function (xml) { //load the SVG
 							if (xml) { //if it loaded properly...
 								$element.css("position", "relative");
-                                console.log(extID)
+                                // console.log(extID)
 								$element.append("<div id='" + extID + "'></div>"); //create the container div
 								var borders = layout.showBorders; //show borders?
 								var con = $("#" + extID);
