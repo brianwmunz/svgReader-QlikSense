@@ -536,6 +536,11 @@ define([
 			var extID = layout.qInfo.qId;
 			var numDim = layout.qHyperCube.qDimensionInfo.length;
 			senseUtils.pageExtensionData(self, $element, layout, function ($element, layout, fullMatrix, me) { //function that pages the full data set and returns a big hypercube with all of the data
+				// fix for sheetobjects with old color-picker
+				//var colorPickerPalette = 
+				//if ()
+				console.log(layout.disColor, layout.hotColor, layout.coldColor);
+				
 				//load the properties into variables
 				var disColor = (typeof layout.disColor !== 'undefined' && layout.disColor.color) ? layout.disColor.color : Theme.dataColors.nullColor ? Theme.dataColors.nullColor : "#d2d2d2";
 				var hotColor = (typeof layout.hotColorCustom !== 'undefined' && layout.hotColorCustom !=='') ? layout.hotColorCustom : (typeof layout.hotColor !== 'undefined' && layout.hotColor.color) ? layout.hotColor.color : "#AE1C3E";
