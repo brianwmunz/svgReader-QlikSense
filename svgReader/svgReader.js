@@ -537,16 +537,44 @@ define([
 			var numDim = layout.qHyperCube.qDimensionInfo.length;
 			senseUtils.pageExtensionData(self, $element, layout, function ($element, layout, fullMatrix, me) { //function that pages the full data set and returns a big hypercube with all of the data
 				// fix for sheetobjects with old color-picker
-				//var colorPickerPalette = 
-				//if ()
-				console.log(layout.disColor, layout.hotColor, layout.coldColor);
-				
+				//console.log(layout.disColor, layout.hotColor, layout.coldColor);
+				function translateColor(prop, alt) {
+					var colorPickerOldPalette = ["#b0afae", "#7b7a78", "#545352", "#4477aa", "#7db8da", "#b6d7ea", "#46c646", "#f93f17", "#ffcf02", "#276e27", "#ffffff", "#000000"];
+					var ret = "#d2d2d2";
+					if (prop !== 'undefined') {
+						if (typeof prop === 'number' && prop >= 0 && prop <= 12) {
+							ret = colorPickerOldPalette[prop];
+						} else if (typeof prop === 'string') {
+							ret = prop;
+						} else if (typeof prop === 'object' && prop.hasOwnProperty("color")) {
+							ret = prop.color;
+						}
+					} else {
+						if (alt !== 'undefined' && typeof alt === 'string' && alt !== '') {
+							ret = alt;
+						}
+					}
+					return ret;
+				}
+				function translateColor2(cust, prop, alt) {
+					if (cust !== 'undefined' && typeof cust === 'string' && cust !== '') {
+						return cust;
+					} else {
+						return translateColor(prop, alt);
+					}
+				}
 				//load the properties into variables
-				var disColor = (typeof layout.disColor !== 'undefined' && layout.disColor.color) ? layout.disColor.color : Theme.dataColors.nullColor ? Theme.dataColors.nullColor : "#d2d2d2";
-				var hotColor = (typeof layout.hotColorCustom !== 'undefined' && layout.hotColorCustom !=='') ? layout.hotColorCustom : (typeof layout.hotColor !== 'undefined' && layout.hotColor.color) ? layout.hotColor.color : "#AE1C3E";
-				var coldColor = (typeof layout.coldColorCustom !== 'undefined' && layout.coldColorCustom !=='') ? layout.coldColorCustom : (typeof layout.coldColor !== 'undefined' && layout.coldColor.color) ? layout.coldColor.color : "#3D52A1";
+				var disColor = translateColor(layout.disColor,  Theme.dataColors.nullColor);
+				var hotColor = translateColor2(layout.hotColorCustom, layout.hotColor, "#AE1C3E");
+				var coldColor = translateColor2(layout.coldColorCustom, layout.coldColor, "#3D52A1");
+				//console.log(disColor, hotColor, coldColor);
+				
 				var customSVG = layout.loadSVG;
 				var showText = layout.showText;
+
+				// treat new property
+				layout.popupDisplay = typeof layout.popupDisplay === 'undefined' ? true : layout.popupDisplay;
+
 				//empty out the extension in order to redraw.  in the future it would be good to not have to redraw the svg but simply re-color it
 				$element.empty();
 				//arrJ is an object that holds all of the relevant data coming from sense that we can match against the SVG
@@ -589,18 +617,20 @@ define([
 					}
 				}
 
+				var  col = 0;
+				if(!(numDim==1 || layout.onlyonedimension)) {
+					col = 1;
+				}
+
 				$.each(fullMatrix, function () {
 					var row = this, col = 0;
 					var thisColor = "";
 					//////////////// BY DIMENSION ////////////////
-					if(!(numDim==1 || layout.onlyonedimension)) {
-						col = 1;
-					}
 					if(layout.colorType) {
 						if (row[col].qElemNumber >= 0) {
 							thisColor = colorScale[row[col].qElemNumber % colorScale.length];
 						} else {
-							thisColor = Theme.dataColors.nullColor;
+							thisColor = disColor;
 						}
 					}
 					//////////////// BY MEASURE ////////////////
