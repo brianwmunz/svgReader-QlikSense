@@ -1,25 +1,27 @@
 /*globals define*/
 var self;
 define([
-    "qlik","jquery", 
+	"qlik",
+	"jquery", 
     "./d3", 
     "./chroma", 
-	"text!assets/external/sense-themes-default/sense/theme.json", // For Qlik Sense >= April 2018
     "./svgOptions", 
     "./svgFunctions", 
     "./senseUtils"
-], function (qlik, $, d3, chroma, Theme) {
+], function (qlik, $, d3, chroma) {
     'use strict';
-
-	Theme = JSON.parse(Theme);
 
 	//get baseUrl of extension assets so css and svg can be loaded correctly in both client and mashup
 	var baseUrl = typeof config !== "undefined" ? (config.isSecure ? "https://" : "http://" ) + config.host + (config.port ? ":" + config.port : "" ) + config.prefix : "";
 
 	//load css here so that mashups without require.js text extension loaded still work
-	$.get(baseUrl + "/Extensions/svgReader/style.css", function(cssContent) {
-	   $( "<style>" ).html( cssContent ).appendTo( "head" );
+	$.get(baseUrl + (baseUrl.slice(-1) === "/" ? "" : "/") + "Extensions/svgReader/style.css", function(cssContent) {
+	   	$( "<style>" ).html( cssContent ).appendTo( "head" );
 	});
+
+	var panelSliderLabel = function () {
+		return this.labelText + " (" + (arguments[0][this.ref] || this.defaultValue) + ")";
+	};
 
 	return {
 		initialProperties: {
@@ -123,6 +125,12 @@ define([
 									type: "boolean",
 									label: "Hide Rotation Arrows",
 									ref: "hideRotation",
+									defaultValue: true // feature doesn't work atm
+								}, 
+								scrollable: {
+									type: "boolean",
+									label: "Scrollable",
+									ref: "scrollable",
 									defaultValue: false
 								}, 
 								zoomMin:{
@@ -291,7 +299,18 @@ define([
 										}
 									},
 									defaultValue: ''
-							    },
+								},
+								colorOpacity: {
+									ref: "colorOpacity",
+									type: "number",
+									component: "slider",
+									labelText: "Opacity",
+									label: panelSliderLabel,
+									min: 0.4, // above selection opacity 0.3 (unselected shapes, class qv-selection-active)
+									max: 1,
+									step: 0.02,
+									defaultValue: 1
+								},
 								//////////////// BY DIMENSION ////////////////
 								OnlyOneDimension: {
                                     //type: "boolean",
@@ -524,17 +543,32 @@ define([
 				}
 			}
 		},
-		snapshot: {
-			canTakeSnapshot: true
+		support: {
+			snapshot: true,
+			export: true,
+			exportData: true
 		},
-		paint: function ($element, layout, self) {
-			var html = "",
-				self = this,
-				lastrow = 0,
+		updateData: function(layout){
+			var app = qlik.currApp(this);
+			return new qlik.Promise(function(resolve){
+				return app.theme.getApplied().then(function(res){
+					layout.Theme = res;
+					resolve(layout);
+				});
+			});
+		},
+		paint: function($element, layout){
+			var self = this,
 				h = $element.height(),
-				w = $element.width();
-			var extID = layout.qInfo.qId;
-			var numDim = layout.qHyperCube.qDimensionInfo.length;
+				w = $element.width(),
+				extID = layout.qInfo.qId,
+				numDim = layout.qHyperCube.qDimensionInfo.length,
+				Theme = layout.Theme.properties,
+				resolvePrint,
+				scope = $element.scope();
+
+			$element.parents("div.qv-object-content-container").css("overflow", layout.scrollable ? "auto" : "");
+
 			senseUtils.pageExtensionData(self, $element, layout, function ($element, layout, fullMatrix, me) { //function that pages the full data set and returns a big hypercube with all of the data
 				// fix for sheetobjects with old color-picker
 				//console.log(layout.disColor, layout.hotColor, layout.coldColor);
@@ -613,7 +647,7 @@ define([
 						}
 					} else {
 						// set some default scale as fallback (12 colors standard)
-	 					colorScale = ["#332288", "#6699cc", "#44aa99", "#88ccee", "#117733", "#999933", "#ddcc77", "#661100", "#cc6677", "#882255", "#aa4499"];
+						colorScale = ["#332288", "#6699cc", "#44aa99", "#88ccee", "#117733", "#999933", "#ddcc77", "#661100", "#cc6677", "#882255", "#aa4499"];
 					}
 				}
 
@@ -622,8 +656,8 @@ define([
 					col = 1;
 				}
 
-				$.each(fullMatrix, function () {
-					var row = this, col = 0;
+				fullMatrix.forEach(function (row) {
+					col = 0;
 					var thisColor = "";
 					//////////////// BY DIMENSION ////////////////
 					if(layout.colorType) {
@@ -685,15 +719,536 @@ define([
 							return arr;
 						}(),
 						"printName": row[0].qText,
-						"color": thisColor
+						"color": thisColor,
+						"opacity": layout.colorOpacity || 1
 					}
 				});
 				
+				function processXml(xml) { //load the SVG
+					if (xml) { //if it loaded properly...
+						$element.css("position", "relative");
+						// console.log(extID)
+						$element.append("<div id='" + extID + "'></div>"); //create the container div
+						var borders = layout.showBorders; //show borders?
+						var con = $("#" + extID);
+						con.css({ //set height and width of container
+							"position": "relative",
+							"height": $element.height() - 10 + "px",
+							"width": $element.width() - 10 + "px"
+						});
+						
+						// set a class attribute to the svg
+						xml.setAttribute("class", "svg_map");
+
+						con.append(xml); //append the svg
+
+						var $svg = d3.select('#' + extID + ' svg');
+
+						var svgW = $svg.attr("width");
+						var svgH = $svg.attr("height");
+						
+						// -------------------------- Tooltip --------------------------
+						// Only one tooltip, if already exists, delete it or not recreate it
+						$( ".tooltip" ).remove();
+						
+						// ------ TOOLTIP : CUSTOMIZATION BACKGROUND COLOR ------
+				
+						if(layout.popupCustom){
+							
+							// change tooltip background color
+							var str_bg_color = layout.popupBackgroundcolor;
+							var isOK = IsOKColor(str_bg_color);
+							
+							// change tooltip background opacity
+							if(layout.popupBackgroundopacity==undefined)
+								layout.popupBackgroundopacity = 8;
+							
+							var backgroundstyle;
+							
+							if(isOK){
+								var str_rgba = "background-color:rgba("+layout.popupBackgroundcolor+","+(layout.popupBackgroundopacity/10)+");"
+							}
+							else{
+								var str_rgba = "background-color:rgba(255, 255, 255, "+(layout.popupBackgroundopacity/10)+");";
+								
+							}
+							
+							// change display border
+							if(layout.popupDisplayborder || layout.popupDisplayborder==undefined)
+								backgroundstyle = "style=\""+str_rgba+" border: solid 1px #aaa;\"";
+							else
+								backgroundstyle = "style=\""+str_rgba+"\"";
+							
+							
+							$("body").append("<div class=\"tooltip\" "+backgroundstyle+"></div>");
+							
+						}
+						else {
+							$("body").append("<div class=\"tooltip\" style=\"background-color:rgba(255, 255, 255, 0.8); border: solid 1px #aaa;\"></div>"); //add the tooltip to the body
+						}
+						// ------ TOOLTIP : CUSTOMIZATION BACKGROUNG COLOR ------
+						
+						// -------------------------- Tooltip --------------------------
+						
+						//$("body").append("<div class=\"tooltip n\"></div>"); //add the tooltip to the body
+						// Custom Tooltip Color
+						//$(".tooltip").css("background", tooltip.backgroundColor).css("color", tooltip.textColor);
+						//$(".tooltip:after").css("color", tooltip.backgroundColor);
+
+						//This is hacky, serialize it into the file instead.
+						if (!($svg.attr("viewBox"))) { //set the viewBox of the SVG
+							$svg.attr("viewBox", "0 0 " + unitStrip(svgW) + " " + unitStrip(svgH))
+						}
+						$svg //this setting makes the svg resposive basically
+							.attr({
+								"preserveAspectRatio": "xMinYMin meet",
+								"height": con.height(),
+								"width": con.width()
+							});
+						if (!showText) { //setting of whether to show text in the SVG or not
+							$svg.selectAll("text").style("display", "none");
+						}
+						$svg.selectAll("rect,polygon,circle,elipse,path,polyline").datum(function () { //attach the data to the svg objects...if the data doesn't match the id, set it to the disabled color
+							var elData;
+							if (this.id.toLowerCase() in arrJ) {
+								elData = arrJ[this.id.toLowerCase()];
+							} else {
+								elData = {
+									"val": {
+										"num": null,
+										"numText": null
+									},
+									"color": disColor,
+									//"opacity": layout.colorOpacity || 1
+								}
+							}
+							return elData;
+						})
+						.attr("stroke", "none")
+						.style("stroke", "none")
+						.each(function (d, i) { //for each item...
+							if (borders) { //set borders or not
+								$(this)
+								.attr({
+									"stroke": "#454545",
+									"stroke-width": ".5"
+								})
+								.css("stroke", "#454545");
+							}
+							var t = this;
+							colorIt(t, d, arrJ, false); //color the item
+							//if (layout.pop && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
+							if (layout.popupDisplay && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
+								$(this).on({
+									mousemove: function (e) {
+										//$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
+										
+										// -------------------------- Tooltip --------------------------
+										
+										// adapt tooltip position
+								
+										var map_tooltipX = e.pageX,
+											map_tooltipY = e.pageY,
+											elem = $(".tooltip");
+										
+										// shift horizontal -- right
+										if(map_tooltipX > ($element[0].offsetWidth + (w/2))){
+											map_tooltipX -= elem.width();
+										}
+										
+										// shift vertical -- down
+										if((map_tooltipY + elem.height()) > ($element[0].offsetHeight + (h/2))){
+											map_tooltipY -= elem.height();
+										}
+										
+										elem.css("left", (map_tooltipX + 10) + "px").css("top", (map_tooltipY) + "px");
+										
+										// -------------------------- Tooltip --------------------------
+									},
+									mouseenter: function () {
+										
+										// -------------------------- Tooltip --------------------------
+								
+										var res;
+										var content = "";
+										
+										if(layout.popupCustom){
+										
+											// TITLE
+											if(layout.popupDisplaytitle && layout.popupTitle){
+											
+												// Keywords
+												res = ReplaceCustomKeywords(layout.popupTitle, d, layout);
+												
+												// change tooltip title color
+												var str_title_color = layout.popupTitlecolor;
+												var isOK = IsOKColor(str_title_color);
+												var title_style;
+												
+												if(isOK){
+													title_style = "style=\"color:rgb("+str_title_color+");\"";
+												}
+												
+												content += "<h1 "+title_style+">"+res+"</h1>";
+											}
+											
+											// MEASURES
+											if(layout.popupMeasures){
+												
+												//console.log(d.val);
+												
+												// change tooltip measure color
+												var str_measure_color = layout.popupMeasurescolor;
+												var isOK = IsOKColor(str_measure_color);
+												var measure_style;
+												
+												if(isOK){
+													measure_style = "style=\"color:rgb("+str_measure_color+");\"";
+												}
+												
+												for(var i=0; i<d.measures.length; i++){
+													content+="<p "+measure_style+">";
+														if(layout.popupMeasureslabel || layout.popupMeasureslabel==undefined)
+																content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
+														//console.log(d.measures);
+														content += d.measures[i].numText;
+													content+="</p>";
+												}
+											}
+											
+											// ADD CONTENT
+											if(layout.popupDisplayaddcontent && layout.popupAddcontent){
+												
+												// Keywords
+												res = ReplaceCustomKeywords(layout.popupAddcontent, d, layout);
+												
+												content+="<p>"+res+"</p>";
+											}
+										}
+										else{
+											content += "<p>" + d.printName +"</p>";
+											for(var i=0; i<d.measures.length; i++){
+												content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.measures[i].numText+"</p>";
+											}
+										}
+										
+										// -------------------------- Tooltip --------------------------
+								
+										$(".tooltip")
+										.html(content)
+										.show();
+										
+										$(this).css('cursor', 'pointer');
+										
+										//$(".tooltip").html(d.printName + ": " + formatNumber(d.val.numText));
+										//tooltip.width = $(".tooltip").width() + (tooltip.padding * 2);
+										//tooltip.height = $(".tooltip").height() + (tooltip.padding * 2) + tooltip.arrowHeight;
+										//$(".tooltip").show();
+									},
+									mouseleave: function () {
+										$(".tooltip").hide();
+									}
+								});
+							}
+						});
+						$svg.selectAll("g").datum(function () { //do the same thing for g elements.  this had to be a separate loop for various reasons although in the future it would be nice to do it in one loop
+							var elData;
+							if (this.id.toLowerCase() in arrJ) {
+								elData = arrJ[this.id.toLowerCase()];
+							} else {
+								elData = {
+									"val": {
+										"num": null,
+										"numText": null
+									},
+									"color": disColor
+								}
+							}
+							return elData;
+						})
+						.attr("stroke", "none")
+						.style("stroke", "none")
+						.each(function (d, i) {
+							if (borders) {
+								$(this)
+								.attr({
+									"stroke": "#454545",
+									"stroke-width": ".5"
+								})
+								.css("stroke", "#454545");
+							}
+							var t = this;
+							colorIt(t, d, arrJ, false);
+							//if (layout.pop && (this.id.toLowerCase() in arrJ)) {
+							if (layout.popupDisplay && (this.id.toLowerCase() in arrJ)) {
+								$(this).on({
+									mousemove: function (e) {
+										//$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
+										
+										// -------------------------- Tooltip --------------------------
+										
+										// adapt tooltip position
+								
+										var map_tooltipX = e.pageX,
+											map_tooltipY = e.pageY,
+											elem = $(".tooltip");
+										
+										// shift horizontal -- right
+										if(map_tooltipX > ($element[0].offsetWidth + (w/2))){
+											map_tooltipX -= elem.width();
+										}
+										
+										// shift vertical -- down
+										if((map_tooltipY+ elem.height()) > ($element[0].offsetHeight + (h/2))){
+											map_tooltipY -= elem.height();
+										}
+										
+										elem.css("left", (map_tooltipX) + "px").css("top", (map_tooltipY) + "px");
+										
+										// -------------------------- Tooltip --------------------------
+												
+									},
+									mouseenter: function () {
+										
+										// -------------------------- Tooltip --------------------------
+										
+											var res;
+											var content = "";
+											
+											if(layout.popupCustom){
+												
+												// TITLE
+												if(layout.popupDisplaytitle && layout.popupTitle){
+													
+													// Keywords
+													res = ReplaceCustomKeywords(layout.popupTitle, d, layout);
+										
+													var str_title_color = layout.popupTitlecolor;
+													var isOK = IsOKColor(str_title_color);
+													var title_style;
+													
+													if(isOK){
+														title_style = "style=\"color:rgb("+str_title_color+");\"";
+													}
+													
+													content += "<h1 "+title_style+">"+res+"</h1>";
+												}
+										
+												// MEASURES
+												if(layout.popupMeasures){
+													
+													// change tooltip measure color
+													var str_measure_color = layout.popupMeasurescolor;
+													var isOK = IsOKColor(str_measure_color);
+													var measure_style;
+													
+													if(isOK){
+														measure_style = "style=\"color:rgb("+str_measure_color+");\"";
+													}
+
+													content += "<p "+measure_style+"><ul>";
+													for(var i=0; i<d.measures.length; i++){
+														content+="<li>";
+															if(layout.popupMeasureslabel || layout.popupMeasureslabel==undefined)
+																	content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
+															content += d.measures[i].numText;
+														content+="</li>";
+													}
+													content += "</ul></p>";
+													
+												}
+									
+												// ADD CONTENT
+												if(layout.popupDisplayaddcontent && layout.popupAddcontent){
+													
+													// Keywords
+													res = ReplaceCustomKeywords(layout.popupAddcontent, d, layout);
+													
+													content+="<p>"+res+"</p>";
+												}
+											}
+											else{
+												content += "<p>" + d.printName +"</p>";
+												for(var i=0; i<d.measures.length; i++){
+													content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.measures[i].numText+"</p>";
+												}
+											}
+										
+											$(".tooltip")
+											.html(content)
+											.show();
+										
+										// -------------------------- Tooltip --------------------------
+										
+											$(this).css('cursor', 'pointer');
+											//$(".tooltip").html(d.printName + ": " + d.val.numText);
+											//tooltip.width = $(".tooltip").width() + (tooltip.padding * 2);
+											//tooltip.height = $(".tooltip").height() + (tooltip.padding * 2) + tooltip.arrowHeight;
+											//$(".tooltip").show();
+									},
+									mouseleave: function () {
+												$(".tooltip").hide();
+									}
+								});
+							}
+						});
+						$element.find('.selectable').on('qv-activate', function (self) { //when an item is clicked, add it to the selected values and show the Sense UI for selections
+							if (this.hasAttribute("data-value")) {
+								var elem = $(this);
+								//set the class to either selected (if it wasn't already selected) or selectable (if it was already selected)
+								if (elem.attr("class").indexOf("selected") > -1) {
+									var selClass = elem.attr("class");
+									elem.attr("class", selClass.replace("selected", "selectable"));
+								} else {
+									elem.attr("class", "selected");
+								}
+								//get the data-value and select it
+								var value = parseInt(this.getAttribute("data-value"), 10),
+									dim = 0;
+
+								$element.find('.selectable').css("opacity", .3); // overide opacity property, simulate class qv-selection-active
+								me.selectValues(dim, [value], true);
+							}
+						});
+						
+						
+					// ------------------- ZOOM & DRAG & ROTATION ------------------- 
+					// http://bl.ocks.org/mbostock/6123708#index.html
+					
+					
+					var margin = {top: -5, right: -5, bottom: -5, left: -5};
+					
+					if(layout.zoommin==undefined) layout.zoommin = 0.5;
+					if(layout.zoommax==undefined) layout.zoommax = 10;
+					
+					var zoom = d3.behavior.zoom() // This is simply the definition of the zooming behavior, not the application of it
+						.scaleExtent([layout.zoommin, layout.zoommax])
+						.on("zoom", function(d){ // By definition, d3.event.translate and .scale are known in the callback
+							container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+						});
+					
+					var drag = d3.behavior.drag()
+						.origin(function(d) { return d; })
+						.on("dragstart", function (d) {
+							d3.event.sourceEvent.stopPropagation();
+							d3.select(this).classed("dragging", true);
+						})
+						.on("drag", function (d) {
+							d3.select(this)
+							.attr({
+								"cx": d.x = d3.event.x,
+								"cy": d.y = d3.event.y}
+							);
+						})
+						.on("dragend", function (d) {
+							d3.select(this).classed("dragging", false);
+						});
+					
+					// global svg
+					var svg = d3.select("div#"+extID).append("svg")
+						.attr({
+							"id": "svg_parent",
+							"width": w + margin.left + margin.right,
+							"height": h + margin.top + margin.bottom
+						})
+						// first group
+						.append("g")
+							.attr("id", "g_rotate")
+						// second group --> var svg
+						.append("g")
+						.attr({
+							"id": "g_zoom",
+							"transform": "translate(" + margin.left + "," + margin.right + ")"
+						})
+						.call(zoom);
+		
+					// in first group, add the ROTATION BUTTONS
+					if (!layout.hideRotation) {
+						var rotate = d3.select("g#g_rotate");
+						
+						rotate.append("svg:image")
+							.attr({
+								"id": "btn_rotate_left",
+								"xlink:href": "/Extensions/svgReader/imgs/svgReader_arrow_left.png",
+								"height": 50,
+								"width": 50
+							})
+							.style("opacity", "0.5")
+							.on("mouseenter", function(d){
+								d3.select(this).style("opacity", "1");
+							})
+							.on("mouseleave", function(d){
+								d3.select(this).style("opacity", "0.5");
+							})
+							.on("click", function(d){
+								var rot = 0;
+								if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
+									rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
+								
+								var cx = d3.select("g#g_zoom")[0];
+								d3.select("g#g_zoom")
+								.attr("transform", "rotate("+(rot-10)+", "+w/2+", "+h/2+")");
+							});
+						
+						rotate.append("svg:image")
+							.attr({
+								"id": "btn_rotate_right",
+								"xlink:href": "/Extensions/svgReader/imgs/svgReader_arrow_right.png",
+								"height": 50,
+								"width": 50,
+								"x": w-60
+							})
+							.style("opacity", "0.5")
+							.on("mouseenter", function(d){
+								d3.select(this).style("opacity", "1");
+							})
+							.on("mouseleave", function(d){
+								d3.select(this).style("opacity", "0.5");
+							})
+							.on("click", function(d){
+								//var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
+								var rot = 0;
+								if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
+									rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
+								
+								d3.select("g#g_zoom")
+								.attr("transform", "rotate("+(rot+10)+", "+w/2+", "+h/2+")");
+							});
+
+						}
+
+						// in second group, add a rect who catch all events --> var rect
+						var rect = svg.append("rect")
+							.attr({
+								"width": w,
+								"height": h
+							})
+							.style({
+								"fill": "none",
+								"pointer-events": "all"
+							});
+
+						// third group --> var container
+						var container = svg.append("g").attr("id", "g_container");
+						
+						// ------ CONTENT ------
+
+						$("#" + extID + ".svg_map").appendTo(container);
+							
+						// ------ CONTENT ------
+						
+						// ------------------- ZOOM & DRAG & ROTATION ------------------- 
+						
+							
+					} else { //the xml didn't load
+						$element.html("<strong>Could not find SVG</strong>");
+					}
+				}
+
 				setSVG(qlik, self, layout).then(function (loadThis) {
 					
-					var loadThis = layout.svg; // custom SVG, if it exists
-					var currentPath = "/extensions/svgReader/";
-					var loadPath;
+					var loadThis = layout.svg, // custom SVG, if it exists
+						currentPath = (baseUrl.slice(-1) === "/" ? "" : "/") + "extensions/svgReader/";
 					
 					if (layout.svg == "custom") {
 						if(layout.loadSVGAbsolute){
@@ -710,488 +1265,30 @@ define([
 					if (loadThis == "NO VARIABLE") {
 						$element.html("<strong>No Variable Found With That Name</strong>");
 					} else {
-						d3.xml(loadThis, "image/svg+xml", function (xml) { //load the SVG
-							if (xml) { //if it loaded properly...
-								$element.css("position", "relative");
-                                // console.log(extID)
-								$element.append("<div id='" + extID + "'></div>"); //create the container div
-								var borders = layout.showBorders; //show borders?
-								var con = $("#" + extID);
-								con.css({ //set height and width of container
-									"position": "relative",
-									"height": $element.height() - 10 + "px",
-									"width": $element.width() - 10 + "px"
-								});
-								
-								// set a class attribute to the svg
-								xml.documentElement.setAttribute("class", "svg_map");
-								
-								con.append(xml.documentElement); //append the svg
-								var svgW = d3.select('#' + extID + ' svg').attr("width");
-								var svgH = d3.select('#' + extID + ' svg').attr("height");
-								
-								// -------------------------- Tooltip --------------------------
-								// Only one tooltip, if already exists, delete it or not recreate it
-								$( ".tooltip" ).remove();
-								
-								// ------ TOOLTIP : CUSTOMIZATION BACKGROUND COLOR ------
-						
-								if(layout.popupCustom){
-									
-									// change tooltip background color
-									var str_bg_color = layout.popupBackgroundcolor;
-									var isOK = IsOKColor(str_bg_color);
-									
-									// change tooltip background opacity
-									if(layout.popupBackgroundopacity==undefined)
-										layout.popupBackgroundopacity = 8;
-									
-									var backgroundstyle;
-									
-									if(isOK){
-										var str_rgba = "background-color:rgba("+layout.popupBackgroundcolor+","+(layout.popupBackgroundopacity/10)+");"
-									}
-									else{
-										var str_rgba = "background-color:rgba(255, 255, 255, "+(layout.popupBackgroundopacity/10)+");";
-										
-									}
-									
-									// change display border
-									if(layout.popupDisplayborder || layout.popupDisplayborder==undefined)
-										backgroundstyle = "style=\""+str_rgba+" border: solid 1px #aaa;\"";
-									else
-										backgroundstyle = "style=\""+str_rgba+"\"";
-									
-									
-									$("body").append("<div class=\"tooltip\" "+backgroundstyle+"></div>");
-									
+						// store processed xml in scope so we do not need to load and parse svg file in every paint call
+						if (!scope.hasOwnProperty("svgFile") || scope.svgFile !== loadThis){
+							scope.svgFile = loadThis;
+							scope.svgXml = {};
+							d3.xml(loadThis, "image/svg+xml", function(xml) {
+								if (xml) {
+									scope.svgXml = xml.documentElement;
+									processXml(scope.svgXml)
 								}
-								else {
-									$("body").append("<div class=\"tooltip\" style=\"background-color:rgba(255, 255, 255, 0.8); border: solid 1px #aaa;\"></div>"); //add the tooltip to the body
-								}
-								// ------ TOOLTIP : CUSTOMIZATION BACKGROUNG COLOR ------
-								
-								// -------------------------- Tooltip --------------------------
-								
-								
-								
-								//$("body").append("<div class=\"tooltip n\"></div>"); //add the tooltip to the body
-								// Custom Tooltip Color
-								//$(".tooltip").css("background", tooltip.backgroundColor).css("color", tooltip.textColor);
-								//$(".tooltip:after").css("color", tooltip.backgroundColor);
-								var $svg = d3.select('#' + extID + ' svg'); //select the svg 
-								//This is hacky, serialize it into the file instead.
-								if (!($svg.attr("viewBox"))) { //set the viewBox of the SVG
-									$svg.attr("viewBox", "0 0 " + unitStrip(svgW) + " " + unitStrip(svgH))
-								}
-								$svg.attr("preserveAspectRatio", "xMinYMin meet").attr("height", con.height()).attr("width", con.width()); //this setting makes the svg resposive basically
-								if (!showText) { //setting of whether to show text in the SVG or not
-									$svg.selectAll("text").style("display", "none");
-								}
-								$svg.selectAll("rect,polygon,circle,elipse,path,polyline").datum(function () { //attach the data to the svg objects...if the data doesn't match the id, set it to the disabled color
-									var elData;
-									if (this.id.toLowerCase() in arrJ) {
-										var thisVal = arrJ[this.id.toLowerCase()].val.num;
-										elData = arrJ[this.id.toLowerCase()];
-									} else {
-										elData = {
-											"val": {
-												"num": null,
-												"numText": null
-											},
-											"color": disColor
-										}
-									}
-									return elData;
-								}).attr("stroke", "none").style("stroke", "none").each(function (d, i) { //for each item...
-									if (borders) { //set borders or not
-										$(this).attr("stroke", "#454545").attr("stroke-width", ".5").css("stroke", "#454545");
-									}
-									var t = this;
-									colorIt(t, d, arrJ, false); //color the item
-									//if (layout.pop && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
-									if (layout.popupDisplay && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
-										$(this).on({
-											mousemove: function (e) {
-												//$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
-												
-												// -------------------------- Tooltip --------------------------
-												
-												// adapt tooltip position
-										
-												var map_tooltipX = e.pageX;
-												var map_tooltipY = e.pageY;
-												
-												// shift horizontal -- right
-												if(map_tooltipX > ($element[0].offsetWidth + (w/2))){
-													map_tooltipX -= $(".tooltip").width();
-												}
-												
-												// shift vertical -- down
-												if((map_tooltipY+$(".tooltip").height()) > ($element[0].offsetHeight + (h/2))){
-													map_tooltipY -= $(".tooltip").height();
-												}
-												
-												$(".tooltip").css("left", (map_tooltipX) + "px").css("top", (map_tooltipY) + "px");
-												
-												// -------------------------- Tooltip --------------------------
-											},
-											mouseenter: function () {
-												
-												// -------------------------- Tooltip --------------------------
-										
-												var res;
-												var content = "";
-												
-												if(layout.popupCustom){
-												
-													// TITLE
-													if(layout.popupDisplaytitle && layout.popupTitle){
-													
-														// Keywords
-														res = ReplaceCustomKeywords(layout.popupTitle, d, layout);
-														
-														// change tooltip title color
-														var str_title_color = layout.popupTitlecolor;
-														var isOK = IsOKColor(str_title_color);
-														var title_style;
-														
-														if(isOK){
-															title_style = "style=\"color:rgb("+str_title_color+");\"";
-														}
-														
-														content += "<h1 "+title_style+">"+res+"</h1>";
-													}
-													
-													// MEASURES
-													if(layout.popupMeasures){
-														
-														//console.log(d.val);
-														
-														// change tooltip measure color
-														var str_measure_color = layout.popupMeasurescolor;
-														var isOK = IsOKColor(str_measure_color);
-														var measure_style;
-														
-														if(isOK){
-															measure_style = "style=\"color:rgb("+str_measure_color+");\"";
-														}
-														
-														for(var i=0; i<d.measures.length; i++){
-															content+="<p "+measure_style+">";
-																if(layout.popupMeasureslabel || layout.popupMeasureslabel==undefined)
-																		content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
-																//console.log(d.measures);
-																content += d.measures[i].numText;
-															content+="</p>";
-														}
-													}
-													
-													// ADD CONTENT
-													if(layout.popupDisplayaddcontent && layout.popupAddcontent){
-														
-														// Keywords
-														res = ReplaceCustomKeywords(layout.popupAddcontent, d, layout);
-														
-														content+="<p>"+res+"</p>";
-													}
-												}
-												else{
-													content += "<p>" + d.printName +"</p>";
-													for(var i=0; i<d.measures.length; i++){
-														content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.measures[i].numText+"</p>";
-													}
-												}
-												
-												// -------------------------- Tooltip --------------------------
-										
-												$(".tooltip").html(content);
-												$(".tooltip").show();
-												
-												$(this).css('cursor', 'pointer');
-												
-												//$(".tooltip").html(d.printName + ": " + formatNumber(d.val.numText));
-												//tooltip.width = $(".tooltip").width() + (tooltip.padding * 2);
-												//tooltip.height = $(".tooltip").height() + (tooltip.padding * 2) + tooltip.arrowHeight;
-												//$(".tooltip").show();
-											},
-											mouseleave: function () {
-												$(".tooltip").hide();
-											}
-										});
-									}
-								});
-								$svg.selectAll("g").datum(function () { //do the same thing for g elements.  this had to be a separate loop for various reasons although in the future it would be nice to do it in one loop
-									var elData;
-									if (this.id.toLowerCase() in arrJ) {
-										var thisVal = arrJ[this.id.toLowerCase()].val.num;
-										elData = arrJ[this.id.toLowerCase()];
-									} else {
-										elData = {
-											"val": {
-												"num": null,
-												"numText": null
-											},
-											"color": disColor
-										}
-									}
-									return elData;
-								}).attr("stroke", "none").style("stroke", "none").each(function (d, i) {
-									if (borders) {
-										$(this).attr("stroke", "#454545").attr("stroke-width", ".5").css("stroke", "#454545");
-									}
-									var t = this;
-									colorIt(t, d, arrJ, false);
-									//if (layout.pop && (this.id.toLowerCase() in arrJ)) {
-										if (layout.popupDisplay && (this.id.toLowerCase() in arrJ)) {
-										$(this).on({
-											mousemove: function (e) {
-												//$(".tooltip").css("left", (e.pageX - (tooltip.width/2)) + "px").css("top", (e.pageY - tooltip.height) + "px");
-												
-												// -------------------------- Tooltip --------------------------
-												
-												// adapt tooltip position
-										
-												var map_tooltipX = e.pageX;
-												var map_tooltipY = e.pageY;
-												
-												// shift horizontal -- right
-												if(map_tooltipX > ($element[0].offsetWidth + (w/2))){
-													map_tooltipX -= $(".tooltip").width();
-												}
-												
-												// shift vertical -- down
-												if((map_tooltipY+$(".tooltip").height()) > ($element[0].offsetHeight + (h/2))){
-													map_tooltipY -= $(".tooltip").height();
-												}
-												
-												$(".tooltip").css("left", (map_tooltipX) + "px").css("top", (map_tooltipY) + "px");
-												
-												// -------------------------- Tooltip --------------------------
-														
-											},
-											mouseenter: function () {
-												
-												// -------------------------- Tooltip --------------------------
-												
-													var res;
-													var content = "";
-													
-													if(layout.popupCustom){
-														
-														// TITLE
-														if(layout.popupDisplaytitle && layout.popupTitle){
-															
-															// Keywords
-															res = ReplaceCustomKeywords(layout.popupTitle, d, layout);
-												
-															var str_title_color = layout.popupTitlecolor;
-															var isOK = IsOKColor(str_title_color);
-															var title_style;
-															
-															if(isOK){
-																title_style = "style=\"color:rgb("+str_title_color+");\"";
-															}
-															
-															content += "<h1 "+title_style+">"+res+"</h1>";
-														}
-												
-														// MEASURES
-														if(layout.popupMeasures){
-															
-															// change tooltip measure color
-															var str_measure_color = layout.popupMeasurescolor;
-															var isOK = IsOKColor(str_measure_color);
-															var measure_style;
-															
-															if(isOK){
-																measure_style = "style=\"color:rgb("+str_measure_color+");\"";
-															}
-
-															content += "<p "+measure_style+"><ul>";
-															for(var i=0; i<d.measures.length; i++){
-																content+="<li>";
-																	if(layout.popupMeasureslabel || layout.popupMeasureslabel==undefined)
-																			content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
-																	content += d.measures[i].numText;
-																content+="</li>";
-															}
-															content += "</ul></p>";
-															
-														}
-											
-														// ADD CONTENT
-														if(layout.popupDisplayaddcontent && layout.popupAddcontent){
-															
-															// Keywords
-															res = ReplaceCustomKeywords(layout.popupAddcontent, d, layout);
-															
-															content+="<p>"+res+"</p>";
-														}
-													}
-													else{
-														content += "<p>" + d.printName +"</p>";
-														for(var i=0; i<d.measures.length; i++){
-															content += "<p>" + layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": " + d.measures[i].numText+"</p>";
-														}
-													}
-												
-													$(".tooltip").html(content);
-													$(".tooltip").show();
-												
-												// -------------------------- Tooltip --------------------------
-												
-														$(this).css('cursor', 'pointer');
-														//$(".tooltip").html(d.printName + ": " + d.val.numText);
-														//tooltip.width = $(".tooltip").width() + (tooltip.padding * 2);
-														//tooltip.height = $(".tooltip").height() + (tooltip.padding * 2) + tooltip.arrowHeight;
-														//$(".tooltip").show();
-											},
-											mouseleave: function () {
-														$(".tooltip").hide();
-											}
-										});
-									}
-								});
-								$element.find('.selectable').on('qv-activate', function (self) { //when an item is clicked, add it to the selected values and show the Sense UI for selections
-									if (this.hasAttribute("data-value")) {
-										//set the class to either selected (if it wasn't already selected) or selectable (if it was already selected)
-										if ($(this).attr("class").indexOf("selected") > -1) {
-											var selClass = $(this).attr("class");
-											$(this).attr("class", selClass.replace("selected", "selectable"));
-										} else {
-											$(this).attr("class", "selected");
-										}
-										//get the data-value and select it
-										var value = parseInt(this.getAttribute("data-value"), 10),
-											dim = 0;
-										me.selectValues(dim, [value], true);
-									}
-								});
-								
-								
-						// ------------------- ZOOM & DRAG & ROTATION ------------------- 
-						// http://bl.ocks.org/mbostock/6123708#index.html
-						
-						
-						var margin = {top: -5, right: -5, bottom: -5, left: -5};
-						
-						if(layout.zoommin==undefined) layout.zoommin = 0.5;
-						if(layout.zoommax==undefined) layout.zoommax = 10;
-						
-						var zoom = d3.behavior.zoom() // This is simply the definition of the zooming behavior, not the application of it
-							.scaleExtent([layout.zoommin, layout.zoommax])
-							.on("zoom", function(d){ // By definition, d3.event.translate and .scale are known in the callback
-								container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 							});
-						
-						var drag = d3.behavior.drag()
-							.origin(function(d) { return d; })
-							.on("dragstart", function (d) {
-								d3.event.sourceEvent.stopPropagation();
-								d3.select(this).classed("dragging", true);
-							})
-							.on("drag", function (d) {
-								d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
-							})
-							.on("dragend", function (d) {
-								d3.select(this).classed("dragging", false);
-							});
-						
-						// global svg
-						var svg = d3.select("div#"+extID).append("svg")
-							.attr("id", "svg_parent")
-							.attr("width", w + margin.left + margin.right)
-							.attr("height", h + margin.top + margin.bottom)
-						// first group
-						  .append("g")
-							.attr("id", "g_rotate")
-						// second group --> var svg
-						  .append("g")
-							.attr("id", "g_zoom")
-							.attr("transform", "translate(" + margin.left + "," + margin.right + ")")
-							.call(zoom);
-			
-                        // in first group, add the ROTATION BUTTONS
-                        if (!layout.hideRotation) {
-                            var rotate = d3.select("g#g_rotate");
-                            
-                            rotate.append("svg:image")
-                                .attr("id", "btn_rotate_left")
-                                .attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_left.png")
-                                .attr("height", 50)
-                                .attr("width", 50)
-                                .style("opacity", "0.5")
-                                .on("mouseenter", function(d){
-                                    d3.select(this).style("opacity", "1");
-                                })
-                                .on("mouseleave", function(d){
-                                    d3.select(this).style("opacity", "0.5");
-                                })
-                                .on("click", function(d){
-                                    var rot = 0;
-                                    if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
-                                        rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
-                                    
-                                    var cx = d3.select("g#g_zoom")[0];
-                                    d3.select("g#g_zoom")
-                                    .attr("transform", "rotate("+(rot-10)+", "+w/2+", "+h/2+")");
-                                });
-                            
-                            rotate.append("svg:image")
-                                .attr("id", "btn_rotate_right")
-                                .attr("xlink:href", "/Extensions/svgReader/imgs/svgReader_arrow_right.png")
-                                .attr("height", 50)
-                                .attr("width", 50)
-                                .attr("x", w-60)
-                                .style("opacity", "0.5")
-                                .on("mouseenter", function(d){
-                                    d3.select(this).style("opacity", "1");
-                                })
-                                .on("mouseleave", function(d){
-                                    d3.select(this).style("opacity", "0.5");
-                                })
-                                .on("click", function(d){
-                                    //var rot = d3.select("g#g_zoom")[0][0].transform.baseVal[0].angle;
-                                    var rot = 0;
-                                    if(d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0))
-                                        rot = d3.select("g#g_zoom")[0][0].transform.baseVal.getItem(0).angle;
-                                    
-                                    d3.select("g#g_zoom")
-                                    .attr("transform", "rotate("+(rot+10)+", "+w/2+", "+h/2+")");
-                                });
-
-                            }
-
-						// in second group, add a rect who catch all events --> var rect
-						var rect = svg.append("rect")
-							.attr("width", w)
-							.attr("height", h)
-							.style("fill", "none")
-							.style("pointer-events", "all");
-
-						// third group --> var container
-						var container = svg.append("g").attr("id", "g_container");
-						
-						// ------ CONTENT ------
- 
-						$("#" + extID + ".svg_map").appendTo($("#g_container"));
-							
-						// ------ CONTENT ------
-						
-						// ------------------- ZOOM & DRAG & ROTATION ------------------- 
-						
-								
-							} else { //the xml didn't load
-								$element.html("<strong>Could not find SVG</strong>");
-							}
-						});
+						} else {
+							processXml(scope.svgXml);
+						}
 					}
+					resolvePrint();
 				});
 			});
-			function formatNumber(d) {
-				return d.toString().replace(/(\d+)(\d{3})(\d{3})/, '$1'+','+'$2'+','+'$3'); ;
-			};
+			return new qlik.Promise(function(resolve) { 
+				resolvePrint = resolve; 
+			});
+
+			// function formatNumber(d) {
+			// 	return d.toString().replace(/(\d+)(\d{3})(\d{3})/, '$1'+','+'$2'+','+'$3'); ;
+			// };
 		}
 	};
 });
