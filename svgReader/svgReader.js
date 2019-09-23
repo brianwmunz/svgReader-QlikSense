@@ -876,6 +876,8 @@ define([
 						.attr("stroke", "none")
 						.style("stroke", "none")
 						.each(function (d, i) { //for each item...
+							console.log("id", this.id);
+
 							var t = this;
 							if (borders) { //set borders or not
 								$(t)
@@ -1002,7 +1004,7 @@ define([
 							}
 						});
 
-						$svg.selectAll("g").datum(function () { //do the same thing for g elements.  this had to be a separate loop for various reasons although in the future it would be nice to do it in one loop
+						var $svg_g = $svg.selectAll("g").datum(function () { //do the same thing for g elements.  this had to be a separate loop for various reasons although in the future it would be nice to do it in one loop
 							var elData;
 							if (this.id.toLowerCase() in arrJ) {
 								elData = arrJ[this.id.toLowerCase()];
@@ -1012,7 +1014,8 @@ define([
 										"num": null,
 										"numText": null
 									},
-									"color": disColor
+									"color": disColor,
+									"opacity": layout.colorOpacity || 1
 								}
 							}
 							return elData;
@@ -1147,14 +1150,19 @@ define([
 						// always remove old text elements
 						$svg.selectAll("text.measure-text").remove();
 						if (showText && showMeasure) {
-							$svgElements.each(function (d, i){
+							function addText(d, i){
 								if (this.id.toLowerCase() in arrJ) {
+									// console.log("id", this.id);
 									var bbox = this.getBBox(),
 										mText = d.measures[0].numText,
 										mColor = d.color;
-									//var $text = $svg.select("g").append("text")
-									var $text = d3.select(this.parentNode).append("text")
-									.attr({
+									
+									if (this.tagName === "g") {
+										var $text = d3.select(this).append("text");
+									} else {
+										var $text = d3.select(this.parentNode).append("text");
+									}
+									$text.attr({
 										"transform": "translate(" + (bbox.x + bbox.width/2) + " " + (bbox.y + bbox.height/2) + ")",
 										"class": "measure-text",
 										"stroke": "none",
@@ -1173,7 +1181,9 @@ define([
 									var tb = $text.node().getBBox();
 									$text.node().setAttribute("transform", "translate(" + (bbox.x + bbox.width/2 - tb.width/2) + " " + (bbox.y + bbox.height/2 + tb.height/4) + ")");
 								}
-							});
+							}
+							$svgElements.each(addText);
+							$svg_g.each(addText);						
 						}
 
 						$element.find('.selectable').on('qv-activate', function (self) { //when an item is clicked, add it to the selected values and show the Sense UI for selections
