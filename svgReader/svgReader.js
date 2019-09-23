@@ -764,7 +764,7 @@ define([
 							}
 							return arr;
 						}(),
-						"printName": row[0].qText,
+						"printName": ReplaceAll(row[0].qText, "_", " "),
 						"color": thisColor,
 						"opacity": layout.colorOpacity || 1
 					}
