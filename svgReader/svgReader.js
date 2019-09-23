@@ -121,6 +121,48 @@ define([
 									ref: "showText",
 									defaultValue: false
 								}, 
+								showMeasure: {
+									type: "boolean",
+									label: "Show Measure",
+									ref: "showMeasure",
+									defaultValue: false,
+									show: function(data) {
+										return data.showText;
+									}
+								},
+								measureFontSize: {
+									ref: "measureFontSize",
+									type: "number",
+									component: "slider",
+									labelText: "Measure Font Size",
+									label: panelSliderLabel,
+									min: 0.4,
+									max: 60,
+									step: 0.2,
+									defaultValue: 6
+								},
+								measureCustColor: {
+									type: "boolean",
+									label: "Custom Measure Color",
+									ref: "measureCustColor",
+									defaultValue: false,
+									show: function(data) {
+										return data.showText && data.showMeasure;
+									}
+								},
+								measureColor: {
+									component: "color-picker",
+									label: "Hot Color",
+									ref: "measureColor",
+									type: "object",
+									dualOutput: true,
+									defaultValue: {
+										color: "#7db8da"
+									},
+									show: function (data) {
+										return data.showText && data.showMeasure && data.measureCustColor;
+									}
+								},
 								hideRotationArrows: {
 									type: "boolean",
 									label: "Hide Rotation Arrows",
@@ -601,10 +643,14 @@ define([
 				var disColor = translateColor(layout.disColor,  Theme.dataColors.nullColor);
 				var hotColor = translateColor2(layout.hotColorCustom, layout.hotColor, "#AE1C3E");
 				var coldColor = translateColor2(layout.coldColorCustom, layout.coldColor, "#3D52A1");
-				//console.log(disColor, hotColor, coldColor);
+				console.log(disColor, hotColor, coldColor);
 				
-				var customSVG = layout.loadSVG;
-				var showText = layout.showText;
+				var customSVG = layout.loadSVG,
+					showText = layout.showText,
+					showMeasure = layout.showMeasure,
+					measureFontSize = layout.measureFontSize || 6,
+					measureCustColor = layout.measureCustColor,
+					measureColor = layout.measureColor;
 
 				// treat new property
 				layout.popupDisplay = typeof layout.popupDisplay === 'undefined' ? true : layout.popupDisplay;
@@ -808,7 +854,7 @@ define([
 						if (!showText) { //setting of whether to show text in the SVG or not
 							$svg.selectAll("text").style("display", "none");
 						}
-						$svg.selectAll("rect,polygon,circle,elipse,path,polyline").datum(function () { //attach the data to the svg objects...if the data doesn't match the id, set it to the disabled color
+						var $svgElements = $svg.selectAll("rect,polygon,circle,elipse,path,polyline").datum(function () { //attach the data to the svg objects...if the data doesn't match the id, set it to the disabled color
 							var elData;
 							if (this.id.toLowerCase() in arrJ) {
 								elData = arrJ[this.id.toLowerCase()];
@@ -819,7 +865,7 @@ define([
 										"numText": null
 									},
 									"color": disColor,
-									//"opacity": layout.colorOpacity || 1
+									"opacity": layout.colorOpacity || 1
 								}
 							}
 							return elData;
@@ -827,15 +873,16 @@ define([
 						.attr("stroke", "none")
 						.style("stroke", "none")
 						.each(function (d, i) { //for each item...
+							var t = this;
 							if (borders) { //set borders or not
-								$(this)
+								$(t)
 								.attr({
 									"stroke": "#454545",
 									"stroke-width": ".5"
 								})
 								.css("stroke", "#454545");
 							}
-							var t = this;
+							$(t).css("opacity", d.opacity);
 							colorIt(t, d, arrJ, false); //color the item
 							//if (layout.pop && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
 							if (layout.popupDisplay && (this.id.toLowerCase() in arrJ)) { //if popups are set, set the popup to show 
@@ -951,6 +998,7 @@ define([
 								});
 							}
 						});
+
 						$svg.selectAll("g").datum(function () { //do the same thing for g elements.  this had to be a separate loop for various reasons although in the future it would be nice to do it in one loop
 							var elData;
 							if (this.id.toLowerCase() in arrJ) {
@@ -1092,6 +1140,38 @@ define([
 								});
 							}
 						});
+
+						// always remove old text elements
+						$svg.selectAll("text.measure-text").remove();
+						if (showText && showMeasure) {
+							$svgElements.each(function (d, i){
+								if (this.id.toLowerCase() in arrJ) {
+									var bbox = this.getBBox(),
+										mText = d.measures[0].numText,
+										mColor = d.color;
+									var $text = $svg.select("g").append("text")
+									.attr({
+										"transform": "translate(" + (bbox.x + bbox.width/2) + " " + (bbox.y + bbox.height/2) + ")",
+										"class": "measure-text",
+										"stroke": "none",
+										"fill": function (d, i) {
+											return (measureCustColor ? measureColor.color : (d3.hsl(mColor).brighter(1) == "#ffffff" ? "#A0A0A0" : "#F0F0F0"));
+										},
+										"font-family": "Qlik Sans, sans serif",
+										"font-size": measureFontSize,
+										"pointer-events": "none"
+									})
+									.text(function (d, i) {
+										return mText;
+									});
+
+									// reposition text in middle vertically and horizontally
+									var tb = $text.node().getBBox();
+									$text.node().setAttribute("transform", "translate(" + (bbox.x + bbox.width/2 - tb.width/2) + " " + (bbox.y + bbox.height/2 + tb.height/4) + ")");
+								}
+							});
+						}
+
 						$element.find('.selectable').on('qv-activate', function (self) { //when an item is clicked, add it to the selected values and show the Sense UI for selections
 							if (this.hasAttribute("data-value")) {
 								var elem = $(this);
@@ -1099,14 +1179,16 @@ define([
 								if (elem.attr("class").indexOf("selected") > -1) {
 									var selClass = elem.attr("class");
 									elem.attr("class", selClass.replace("selected", "selectable"));
+									$element.find('.selectable').css("opacity", layout.colorOpacity);
 								} else {
 									elem.attr("class", "selected");
+									elem.css("opacity", layout.colorOpacity);
+									$element.find('.selectable').css("opacity", .3); // overide opacity property, simulate class qv-selection-active
 								}
 								//get the data-value and select it
 								var value = parseInt(this.getAttribute("data-value"), 10),
 									dim = 0;
 
-								$element.find('.selectable').css("opacity", .3); // overide opacity property, simulate class qv-selection-active
 								me.selectValues(dim, [value], true);
 							}
 						});
