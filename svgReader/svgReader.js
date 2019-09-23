@@ -155,7 +155,7 @@ define([
 								},
 								measureColor: {
 									component: "color-picker",
-									label: "Hot Color",
+									label: "Measure Color",
 									ref: "measureColor",
 									type: "object",
 									dualOutput: true,

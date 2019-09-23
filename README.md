@@ -86,10 +86,6 @@ Now an explanation of the properties:
 
 **SVG Map** is the list of built in SVG maps.  If you want to load a custom SVG, select the custom SVG option.
 
-**Show element borders** tells the extension whether or not to put borders around the SVG elements.  Sometimes forcing borders around the elemts makes the extension more readable.
-
-**Show SVG Text** is an option whether to show text on the custom SVG or not. 
-
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/customPath.PNG)
 
 **Absolute path** check it when you use external path. Warrning if you play with cross domain.
@@ -99,6 +95,12 @@ Now an explanation of the properties:
 ![alt tag](https://raw.githubusercontent.com/brianwmunz/svgReader-QlikSense/master/screenshots/propsCustom.png)
 
 **Treat Custom SVG as Variable** tells the extension to look for a Qlik Sense variable specified in the Custom SVG text box. 
+
+**Show element borders** tells the extension whether or not to put borders around the SVG elements.  Sometimes forcing borders around the elemts makes the extension more readable.
+
+**Show SVG Text** is an option whether to show any text element on the custom SVG or not.
+
+**Show Measure** is an option to show the measure value as text element on the related SVG shape. When checked, font size and color can be adjusted, too.
 
 ------- Color Settings -------
 
@@ -123,6 +125,8 @@ Now an explanation of the properties:
 		**Custom Hex Color for Hot**
 		
 		**Custom Hex Color for Cold**
+
+**Opacity** change opacity of colored shapes to see underlaying details (esp. for floorplans).
 
 ------- Pop-up Settings -------
 
