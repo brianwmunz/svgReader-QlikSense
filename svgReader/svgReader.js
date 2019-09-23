@@ -876,8 +876,6 @@ define([
 						.attr("stroke", "none")
 						.style("stroke", "none")
 						.each(function (d, i) { //for each item...
-							console.log("id", this.id);
-
 							var t = this;
 							if (borders) { //set borders or not
 								$(t)
@@ -1152,7 +1150,6 @@ define([
 						if (showText && showMeasure) {
 							function addText(d, i){
 								if (this.id.toLowerCase() in arrJ) {
-									// console.log("id", this.id);
 									var bbox = this.getBBox(),
 										mText = d.measures[0].numText,
 										mColor = d.color;
