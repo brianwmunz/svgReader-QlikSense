@@ -74,7 +74,7 @@ var colorIt = function (me, d, arrJ, par) {
         .css("opacity", d.opacity);
     } else if ((lid in arrJ) || (par)) { //not a g, it's its own thing...
         fillSelected(me, d, "o");
-    } else if (!(me.parentNode.id in arrJ) && (par != true)) { //this svg element means nothing to us, data-wise
+    } else if ((elem.css("fill") != "none") && !(me.parentNode.id in arrJ) && (par != true)) { //this svg element means nothing to us, data-wise
         elem
         .css("fill", d.color)
         .attr("fill", d.color);
