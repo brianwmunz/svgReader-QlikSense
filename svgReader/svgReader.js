@@ -139,7 +139,10 @@ define([
 									min: 0.4,
 									max: 60,
 									step: 0.2,
-									defaultValue: 6
+									defaultValue: 6,
+									show: function(data) {
+										return data.showText && data.showMeasure;
+									}
 								},
 								measureCustColor: {
 									type: "boolean",
@@ -643,14 +646,14 @@ define([
 				var disColor = translateColor(layout.disColor,  Theme.dataColors.nullColor);
 				var hotColor = translateColor2(layout.hotColorCustom, layout.hotColor, "#AE1C3E");
 				var coldColor = translateColor2(layout.coldColorCustom, layout.coldColor, "#3D52A1");
-				console.log(disColor, hotColor, coldColor);
+				// console.log(disColor, hotColor, coldColor);
 				
 				var customSVG = layout.loadSVG,
 					showText = layout.showText,
 					showMeasure = layout.showMeasure,
 					measureFontSize = layout.measureFontSize || 6,
 					measureCustColor = layout.measureCustColor,
-					measureColor = layout.measureColor;
+					measureColor = layout.measureColor ? layout.measureColor.color : "#7db8da";
 
 				// treat new property
 				layout.popupDisplay = typeof layout.popupDisplay === 'undefined' ? true : layout.popupDisplay;
@@ -1149,13 +1152,14 @@ define([
 									var bbox = this.getBBox(),
 										mText = d.measures[0].numText,
 										mColor = d.color;
-									var $text = $svg.select("g").append("text")
+									//var $text = $svg.select("g").append("text")
+									var $text = d3.select(this.parentNode).append("text")
 									.attr({
 										"transform": "translate(" + (bbox.x + bbox.width/2) + " " + (bbox.y + bbox.height/2) + ")",
 										"class": "measure-text",
 										"stroke": "none",
 										"fill": function (d, i) {
-											return (measureCustColor ? measureColor.color : (d3.hsl(mColor).brighter(1) == "#ffffff" ? "#A0A0A0" : "#F0F0F0"));
+											return (measureCustColor ? measureColor : (d3.hsl(mColor).brighter(1) == "#ffffff" ? "#A0A0A0" : "#F0F0F0"));
 										},
 										"font-family": "Qlik Sans, sans serif",
 										"font-size": measureFontSize,
