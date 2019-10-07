@@ -5,10 +5,12 @@ define([
 	"jquery", 
     "./d3", 
     "./chroma", 
+	"./polylabel",
+	"./polygonCentroid",
     "./svgOptions", 
     "./svgFunctions", 
     "./senseUtils"
-], function (qlik, $, d3, chroma) {
+], function (qlik, $, d3, chroma, Mapbox, Geometric) {
     'use strict';
 
 	//get baseUrl of extension assets so css and svg can be loaded correctly in both client and mashup
@@ -164,6 +166,23 @@ define([
 									},
 									show: function (data) {
 										return data.showText && data.showMeasure && data.measureCustColor;
+									}
+								},
+								centroidAlgorithm: {
+									type: "string",
+									component: "dropdown",
+									label: "Centroid Algorithm",
+									ref: "centroidAlgorithm",
+									defaultValue: "Mapbox Polylabel",
+									options: [{
+										value: "polylabel",
+										label: "Mapbox Polylabel",
+									}, {
+										value: "geometric",
+										label: "Geometric"
+									}],
+									show: function(data) {
+										return data.showText && data.showMeasure;
 									}
 								},
 								hideRotationArrows: {
@@ -653,7 +672,8 @@ define([
 					showMeasure = layout.showMeasure,
 					measureFontSize = layout.measureFontSize || 6,
 					measureCustColor = layout.measureCustColor,
-					measureColor = layout.measureColor ? layout.measureColor.color : "#7db8da";
+					measureColor = layout.measureColor ? layout.measureColor.color : "#7db8da",
+					centroidAlgorithm = layout.centroidAlgorithm || "polylabel";
 
 				// treat new property
 				layout.popupDisplay = typeof layout.popupDisplay === 'undefined' ? true : layout.popupDisplay;
@@ -1145,6 +1165,17 @@ define([
 							}
 						});
 
+						function polygonSampledFromPath(path, samples){
+							var points = [];
+							var len  = path.getTotalLength();
+							var step = step=len/samples;
+							for (var i=0;i<=len;i+=step){
+								var p = path.getPointAtLength(i);
+								points.push([p.x, p.y]);
+							}
+							return points;
+						}
+
 						// always remove old text elements
 						$svg.selectAll("text.measure-text").remove();
 						if (showText && showMeasure) {
@@ -1152,13 +1183,29 @@ define([
 								if (this.id.toLowerCase() in arrJ) {
 									var bbox = this.getBBox(),
 										mText = d.measures[0].numText,
-										mColor = d.color;
+										mColor = d.color,
+										elem,
+										samples = 100,
+										polygon,
+										centroid,
+										tx, ty;
 									
 									if (this.tagName === "g") {
-										var $text = d3.select(this).append("text");
+										elem = d3.select(this);
 									} else {
-										var $text = d3.select(this.parentNode).append("text");
+										elem = d3.select(this.parentNode);
 									}
+									if (this.tagName === "path") {
+										polygon = polygonSampledFromPath(this, samples);
+										if (polygon.length > 0) {
+											if (centroidAlgorithm === "polylabel") {
+												centroid = Mapbox.polylabel([polygon]);
+											} else {
+												centroid = Geometric.polygonCentroid(polygon);
+											}
+										}
+									}
+									var $text = elem.append("text");
 									$text.attr({
 										"transform": "translate(" + (bbox.x + bbox.width/2) + " " + (bbox.y + bbox.height/2) + ")",
 										"class": "measure-text",
@@ -1176,7 +1223,14 @@ define([
 
 									// reposition text in middle vertically and horizontally
 									var tb = $text.node().getBBox();
-									$text.node().setAttribute("transform", "translate(" + (bbox.x + bbox.width/2 - tb.width/2) + " " + (bbox.y + bbox.height/2 + tb.height/4) + ")");
+									if (centroid && centroid.length === 2) {
+										tx = centroid[0] - tb.width/2;
+										ty = centroid[1] + tb.height/4;
+									} else {
+										tx = bbox.x + bbox.width/2 - tb.width/2;
+										ty = bbox.y + bbox.height/2 + tb.height/4
+									}
+									$text.node().setAttribute("transform", "translate(" + tx + " " + ty + ")");
 								}
 							}
 							$svgElements.each(addText);
