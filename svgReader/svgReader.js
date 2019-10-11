@@ -44,7 +44,16 @@ define([
 				dimensions: {
 					uses: "dimensions",
 					min: 1,
-					max: 2
+					max: 2,
+					items: {
+						tooltipExpression: {
+							type: "string",
+							label: "Tooltip Label",
+							ref: "qAttributeExpressions.0.qExpression",
+							component: "expression",
+							defaultValue: ""
+						}
+					}
 				},
 				measures: {
 					uses: "measures",
@@ -787,12 +796,21 @@ define([
 							}
 							return arr;
 						}(),
-						"printName": ReplaceAll(row[0].qText, "_", " "),
+						// e[0].qAttrExps.qValues[0]
+						"printName": isAttrCellNotEmpty(row[0], 0) ? row[0].qAttrExps.qValues[0].qText : ReplaceAll(row[0].qText, "_", " "),
 						"color": thisColor,
 						"opacity": layout.colorOpacity || 1
 					}
 				});
 				
+				function isAttrCellNotEmpty(c, i) {
+					return (c.hasOwnProperty("qAttrExps") 
+							&& c.qAttrExps.hasOwnProperty("qValues") 
+							&& c.qAttrExps.qValues.length > i
+							&& c.qAttrExps.qValues[i].hasOwnProperty("qText") 
+							&& !((c.qAttrExps.qValues[i].hasOwnProperty("qIsNull") && c.qAttrExps.qValues[i].qIsNull) || c.qAttrExps.qValues[i].qText.trim() == ''));
+				}
+
 				function processXml(xml) { //load the SVG
 					if (xml) { //if it loaded properly...
 						$element.css("position", "relative");
