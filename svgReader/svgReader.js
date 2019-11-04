@@ -290,6 +290,24 @@ define([
 										}
 									}
 								},
+								DualColorScale:{
+									label: "Color Scale",
+									type: "boolean",
+									component: "switch",
+									options: [
+										{
+											label: "Three Colors",
+											value: false
+										}, {
+											label: "Two Colors",
+											value: true
+										}],
+									ref: "dualColorScale",
+									defaultValue: true,
+									show: function (data) {
+										return !data.colorType;
+									}
+								},
 								HotColor: {
 									component: "color-picker",
 									label: "Hot Color",
@@ -306,6 +324,35 @@ define([
 										else{
 											if (!data.onlyonemeasure && data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
 												return false;
+											}
+											else{
+												return true;
+											}
+										}
+									}
+								},
+								MiddleColor: {
+									component: "color-picker",
+									label: function(data) { 
+										if (!data.middleColor) {// need to initialize for new color property in Sept'19, else seeing an angular digest error
+											data.middleColor = {
+												color: "#FF863E"
+											};
+										}
+										return "Middle Color";
+									},
+									ref: "middleColor",
+									type: "object",
+									dualOutput: true,
+									defaultValue: {
+										color: "#FF863E"
+									},
+									show: function (data) {
+										if(data.colorType || typeof data.dualColorScale === 'undefined' || data.dualColorScale){
+											return false;
+										}
+										else{
+											if (!data.onlyonemeasure && data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
 											}
 											else{
 												return true;
@@ -354,6 +401,25 @@ define([
 									},
 									defaultValue: ''
 							    },
+								MiddleColorCustom: {
+									type: "string",
+									label: 'Custom Hex Color for Middle',
+									ref: 'middleColorCustom',
+									show: function (data) {
+										if(data.colorType || typeof data.dualColorScale === 'undefined' || data.dualColorScale){
+											return false;
+										}
+										else{
+											if (!data.onlyonemeasure && data.qHyperCubeDef.qMeasures.length > 1) { //if a color measure is added don't display this property
+												return false;
+											}
+											else{
+												return true;
+											}
+										}
+									},
+									defaultValue: ''
+								},
 								ColdColorCustom: {
 									type: "string",
 									label: 'Custom Hex Color for Cold',
@@ -648,7 +714,7 @@ define([
 				function translateColor(prop, alt) {
 					var colorPickerOldPalette = ["#b0afae", "#7b7a78", "#545352", "#4477aa", "#7db8da", "#b6d7ea", "#46c646", "#f93f17", "#ffcf02", "#276e27", "#ffffff", "#000000"];
 					var ret = "#d2d2d2";
-					if (prop !== 'undefined') {
+					if (typeof prop !== 'undefined') {
 						if (typeof prop === 'number' && prop >= 0 && prop <= 12) {
 							ret = colorPickerOldPalette[prop];
 						} else if (typeof prop === 'string') {
@@ -657,24 +723,29 @@ define([
 							ret = prop.color;
 						}
 					} else {
-						if (alt !== 'undefined' && typeof alt === 'string' && alt !== '') {
+						if (typeof alt !== 'undefined' && typeof alt === 'string' && alt !== '') {
 							ret = alt;
 						}
 					}
 					return ret;
 				}
 				function translateColor2(cust, prop, alt) {
-					if (cust !== 'undefined' && typeof cust === 'string' && cust !== '') {
+					if (typeof cust !== 'undefined' && typeof cust === 'string' && cust !== '') {
 						return cust;
 					} else {
-						return translateColor(prop, alt);
+						if (typeof prop === 'undefined' && typeof alt === 'string') {
+							return alt;
+						} else {
+							return translateColor(prop, alt);
+						}
 					}
 				}
 				//load the properties into variables
 				var disColor = translateColor(layout.disColor,  Theme.dataColors.nullColor);
 				var hotColor = translateColor2(layout.hotColorCustom, layout.hotColor, "#AE1C3E");
+				var midColor = translateColor2(layout.middleColorCustom, layout.middleColor, "#FF863E");
 				var coldColor = translateColor2(layout.coldColorCustom, layout.coldColor, "#3D52A1");
-				// console.log(disColor, hotColor, coldColor);
+				// console.log(disColor, hotColor, midColor, coldColor);
 				
 				var customSVG = layout.loadSVG,
 					showText = layout.showText,
@@ -700,7 +771,11 @@ define([
 				var maxVal = layout.qHyperCube.qMeasureInfo[0].qMax;
 				var minVal = layout.qHyperCube.qMeasureInfo[0].qMin;
 				//set up the color scale
-				var vizScale = chroma.scale([coldColor, hotColor]);
+				if (typeof layout.dualColorScale === 'undefined' || layout.dualColorScale) {
+					var vizScale = chroma.scale([coldColor, hotColor]);
+				} else {
+					var vizScale = chroma.scale([coldColor, midColor, hotColor]);
+				}
 				//iterate through the data and put it into arrJ. this JSON is the same format as the data attached to the SVG elements
 				var cpt = 0;
 				var maxDim, colorScale = [];
@@ -847,7 +922,7 @@ define([
 							var isOK = IsOKColor(str_bg_color);
 							
 							// change tooltip background opacity
-							if(layout.popupBackgroundopacity==undefined)
+							if(typeof layout.popupBackgroundopacity === 'undefined')
 								layout.popupBackgroundopacity = 8;
 							
 							var backgroundstyle;
@@ -861,7 +936,7 @@ define([
 							}
 							
 							// change display border
-							if(layout.popupDisplayborder || layout.popupDisplayborder==undefined)
+							if(layout.popupDisplayborder || typeof layout.popupDisplayborder === 'undefined')
 								backgroundstyle = "style=\""+str_rgba+" border: solid 1px #aaa;\"";
 							else
 								backgroundstyle = "style=\""+str_rgba+"\"";
@@ -996,7 +1071,7 @@ define([
 												
 												for(var i=0; i<d.measures.length; i++){
 													content+="<p "+measure_style+">";
-														if(layout.popupMeasureslabel || layout.popupMeasureslabel==undefined)
+														if(layout.popupMeasureslabel || typeof layout.popupMeasureslabel === 'undefined')
 																content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
 														//console.log(d.measures);
 														content += d.measures[i].numText;
@@ -1139,7 +1214,7 @@ define([
 													content += "<p "+measure_style+"><ul>";
 													for(var i=0; i<d.measures.length; i++){
 														content+="<li>";
-															if(layout.popupMeasureslabel || layout.popupMeasureslabel==undefined)
+															if(layout.popupMeasureslabel || typeof layout.popupMeasureslabel === 'undefined')
 																	content += layout.qHyperCube.qMeasureInfo[i].qFallbackTitle + ": ";
 															content += d.measures[i].numText;
 														content+="</li>";
@@ -1283,8 +1358,8 @@ define([
 					
 					var margin = {top: -5, right: -5, bottom: -5, left: -5};
 					
-					if(layout.zoommin==undefined) layout.zoommin = 0.5;
-					if(layout.zoommax==undefined) layout.zoommax = 10;
+					if(typeof layout.zoommin === 'undefined') layout.zoommin = 0.5;
+					if(typeof layout.zoommax === 'undefined') layout.zoommax = 10;
 					
 					var zoom = d3.behavior.zoom() // This is simply the definition of the zooming behavior, not the application of it
 						.scaleExtent([layout.zoommin, layout.zoommax])
