@@ -700,7 +700,7 @@ define([
 			var self = this,
 				h = $element.height(),
 				w = $element.width(),
-				extID = layout.qInfo.qId,
+				extID = 'a' + layout.qInfo.qId, // html element id must start with a letter
 				numDim = layout.qHyperCube.qDimensionInfo.length,
 				Theme = layout.Theme.properties,
 				resolvePrint,
